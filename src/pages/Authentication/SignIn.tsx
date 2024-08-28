@@ -8,7 +8,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { generateClient } from "aws-amplify/api";
 import * as mutation from "../../graphql/mutations";
-
+import { getTableID, getDriverByUserId } from "../../hooks/authServices";
 import { getCustomAttributes } from "../../hooks/authServices";
 import {
   signIn,
@@ -110,9 +110,15 @@ const SignIn: React.FC<SignInProps> = ({ onLoginSuccess }) => {
       });
 
       console.log("Signed", isSignedIn);
+      try {
+        const userId = await getTableID();
+        const userDetail: any = await getDriverByUserId(`${userId}`);
+        console.log("userDetail", userDetail);
 
-      const { tableID } = await getCustomAttributes();
-      console.log("userType", tableID);
+        console.log(userId);
+      } catch (error) {
+        console.log("sdd");
+      }
 
       isSignedIn && onLoginSuccess();
       // isSignedIn && onLoginSuccess();
@@ -141,8 +147,7 @@ const SignIn: React.FC<SignInProps> = ({ onLoginSuccess }) => {
           <div className="w-full border-stroke dark:border-strokedark xl:w-1/2 xl:border-l-2">
             <div className="w-full p-4 sm:p-12.5 xl:p-17.5">
               <h2 className="mb-9 text-2xl font-bold text-black dark:text-white sm:text-title-xl2">
-                Sign In to Supreme Security Services
-              </h2>
+              Sign In to Access Your Supreme Security Services Staff Account              </h2>
 
               <form onSubmit={handleClickSignIn}>
                 <div className="mb-4">

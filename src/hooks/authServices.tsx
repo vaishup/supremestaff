@@ -36,7 +36,7 @@ export async function signUpUser({ username, password, email, phone_number }) {
 export async function getTableID() {
   try {
     const user = await fetchUserAttributes();
-    return user["custom:TableID"];
+    return user["custom:tableId"];
   } catch (err) {
     console.log(err);
   }
@@ -45,32 +45,65 @@ export async function getTableID() {
 export async function getCustomAttributes() {
   try {
     const user = await fetchUserAttributes();
-    const tableID = user["custom:TableID"];
+    console.log("Fetched User Attributes:", user); // Add this line to see all attributes
 
-    return {
-      tableID,
+    const tableID = user["custom:tableId"];
+console.log("tableID...",tableID);
 
-    };
+    
+    return { user };
   } catch (err) {
-    console.log("Error fetching custom attributes:", err);
+    console.log("Error fetching custom attributes:---------", err);
     throw err;
+  }
+}
+export async function getDriverByUserId(userId: string) {
+  try {
+    console.log('userid....', userId);
+    const query = `
+    query MyQuery {
+      getTheStaff(id: "${userId}") {
+        id
+        fname
+        phoneno
+        lname
+        email
+        joiningdate
+        address
+      }
+    }
+    `;
+    const driverDetail = await client.graphql({
+      query: query,
+    });
+    return driverDetail?.data.getTheStaff;
+  } catch (err) {
+    console.log('err...', err);
   }
 }
 
 export async function getUserInfo() {
   try {
     const user = await fetchUserAttributes();
-    const tableID = user["custom:TableID"];
+    const tableID = user["custom:tableId"];
 
     const userInfo = `
     query MyQuery($id:ID!){
-      getUsers(id: $id) {
-        email
-        full_name
+      getTheStaff(id: $id) {
         id
-        phone
-        driverType
-        dOB
+        fname
+        phoneno
+        lname
+        email
+        joiningdate
+        address
+        theClients {
+          nextToken
+          __typename
+        }
+        clientIds
+        createdAt
+        updatedAt
       }
     }
     `;
@@ -113,39 +146,4 @@ export async function getOtherUserInfo(userId: string) {
 }
 
 // need query from sherman : get driving license by user id
-export async function getLicenseInfoByUserId() {
-  try {
-    const user = await fetchUserAttributes();
-    const tableID = user["custom:TableID"];
-    const query = `
-    `;
-  } catch (Err) {
-    console.error("error in getUserLicenseInfo....", Err);
-  }
-}
 
-export async function getPhramacyByUserId(userId: string) {
-  try {
-    const query = `
-    query MyQuery {
-      getPharmacyUser(id: "${userId}") {
-            id
-      email
-      phone
-      full_name
-      position
-      notiTokenAndroid
-      address
-      pharmacyID
-      }
-    }
-    
-    `;
-    const driverDetail = await client.graphql({
-      query: query,
-    });
-    return driverDetail?.data.getPharmacyUser;
-  } catch (err) {
-    console.log("err...", err);
-  }
-}

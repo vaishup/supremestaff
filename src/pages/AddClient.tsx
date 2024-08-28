@@ -31,7 +31,7 @@ const AddClient = () => {
   };
   return (
     <>
-      <DefaultLayout>
+      <DefaultLayout >
         <Breadcrumb pageName="Add Incident" />
 
         <div className="flex justify-center items-center">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   ChevronLeft,
   Download,
@@ -14,11 +14,33 @@ import {
   X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
+import {
+  getTableID,
+  getUserInfo,
+  getDriverByUserId,
+} from "../../hooks/authServices";
 import { log } from "console";
 import DefaultLayout from "../../layout/DefaultLayout";
+import {
+  getTheClient,
+  pharmacyGroupCreationRequestsByPharmacyID,
+  getTheStaff,
+} from "../../graphql/queries";
+import {
+  signIn,
+  confirmSignUp,
+  signOut,
+  getCurrentUser,
+  updateUserAttribute,
+} from "aws-amplify/auth";
+import { generateClient } from "aws-amplify/api";
 
 const Dashboard = ({}) => {
+  const [username, setUsername] = useState("");
+  const [staffList, setStaffList] = useState();
+  const [clientList, setClientist] = useState([]);
+  const client = generateClient();
+
   const people = [
     {
       name: "Leslie Alexander",
@@ -71,11 +93,18 @@ const Dashboard = ({}) => {
     // Add more people as needed
   ];
   const [selectedIndex, setSelectedIndex] = useState(null);
-  const handleMSGClick = () => {
-    // alert("MessagesSquare icon clicked!");
-  };
-  const handleRemoveClick = () => {
-    //alert("user Remove icon clicked!");
+  useEffect(() => {
+    fetchBatch();
+    //handleLogout()
+  }, []);
+  const handleLogout = async () => {
+    try {
+      const response = await signOut();
+      console.log("signout response ", response);
+      localStorage.removeItem("loginTimestamp");
+    } catch (error) {
+      console.log("error signing out: ", error);
+    }
   };
 
   const [isFriendRemoveOpen, setIsFriendRemoveOpen] = useState(false);
@@ -87,20 +116,61 @@ const Dashboard = ({}) => {
   };
   const navigation = useNavigate();
 
+  const fetchBatch = async () => {
+    const userId = await getTableID();
+    const userDetail: any = await getDriverByUserId(`${userId}`);
+    console.log("userDetail", userDetail);
+    setUsername(userDetail.fname.trim() + " " + userDetail.lname.trim());
+    listClient(userDetail.id);
+  };
+  const listClient = async (id) => {
+    try {
+      const staffdata = await client.graphql({
+        query: getTheStaff,
+        variables: { id: id },
+      });
+      const staffData = staffdata.data.getTheStaff;
+
+      setStaffList(staffData); // Store staff data
+
+      // Fetch client details based on clientIds
+      const clientPromises = staffData.clientIds.map((clientId) =>
+        client.graphql({
+          query: getTheClient,
+          variables: { id: clientId },
+        })
+      );
+
+      const clientResponses = await Promise.all(clientPromises);
+
+      const clients = clientResponses.map(
+        (response) => response.data.getTheClient
+      );
+      console.log("clients....", clients);
+
+      setClientist(clients); // Set the client list
+    } catch (error) {
+      console.error("Error fetching client details:", error);
+    }
+  };
+
+  console.log("staffList...", staffList);
+  console.log("clientList...", clientList);
+
   return (
     <>
-      <p className="text-xl font-bold text-[#531413]">Welcome to John deo </p>
+      {/* <p className="text-xl font-bold text-[#531413]">Welcome to {username} </p> */}
 
-      <div className="w-full pt-10 md:w-4/5 lg:w-3/4 p-4 mx-auto">
+      <div className="w-full  md:w-4/5 lg:w-3/4 p-4 mx-auto">
         <div className="flex flex-col sm:flex-row sm:space-x-4 w-full justify-between mb-6">
-          <p className="text-2xl sm:text-md md:text-4xl font-bold text-primary font-jura mb-4 sm:mb-0">
+          <p className="text-2xl sm:text-md md:text-2xl font-bold text-primary font-jura mb-4 sm:mb-0">
             Client List
           </p>
 
-          <button
+          {/* <button
             className="btn-grad w-[200px] pr-20"
             onClick={() => {
-              navigation("/addclient");
+              navigation("/addIncident");
             }}
           >
             <svg
@@ -118,7 +188,7 @@ const Dashboard = ({}) => {
               ></path>
             </svg>
             Add New Incident
-          </button>
+          </button> */}
 
           {/* <div className="flex ml-3">
            
@@ -133,9 +203,12 @@ const Dashboard = ({}) => {
           </div> */}
         </div>
 
-        {people.map((person, index) => (
+        {clientList.map((person, index) => (
           <>
             <div
+      onClick={() =>
+        navigation(`/clientdetail/${person.id}`)
+      }
               key={index}
               className={`rounded-lg p-6 m-4 bg-white flex justify-between gap-x-6 py-5 cursor-pointer transition-transform transform duration-300 ease-in-out ${
                 selectedIndex === index
@@ -144,23 +217,27 @@ const Dashboard = ({}) => {
               }`}
             >
               <div className="flex min-w-0 gap-x-4">
-                <img
+                {/* <img
                   className="h-12 w-12 flex-none rounded-full bg-gray-50"
                   src={person.imageUrl}
                   alt={person.name}
-                />
+                /> */}
                 <div className="min-w-0 flex-auto">
                   <p className="text-sm font-semibold leading-6 text-whites-100">
-                    {person.name}
+                    {person.bname}
                   </p>
                   <p className="mt-1 truncate text-xs leading-5 text-gray-500">
                     {person.email}
                   </p>
                 </div>
               </div>
-              <button className="flex items-center bg-white text-black px-4 py-2 rounded-full hover:bg-black hover:text-white transition-colors">
-                <UserRoundPlus size={20} className="mr-2" />
-                Add Incident
+              <button
+                className="flex items-center justify-center text-black transition duration-200 ease-in-out group p-2 rounded-full bg-transparent hover:bg-white hover:shadow-lg"
+                onClick={() =>
+                  navigation(`/addIncident/${person.id}/${person.address}`)
+                }
+              >
+                <PlusIcon className="text-black group-hover:text-blue-600" />
               </button>
             </div>
           </>

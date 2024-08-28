@@ -11,7 +11,10 @@ const StaffList = lazy(() => import('../pages/StaffList'));
 const TaskList = lazy(() => import('../pages/TaskList'));
 const ClientList = lazy(() => import('../pages/ClientList'));
 const IncidenetsList = lazy(() => import('../pages/IncidenetsList'));
+const AddIncident = lazy(() => import('../pages/AddIncident'));
+const Settings = lazy(() => import('../pages/Settings'));
 
+const ClientDetails = lazy(() => import('../pages/ClientDetails'))
 
 const coreRoutes = [
   {
@@ -54,6 +57,21 @@ const coreRoutes = [
     path: '/incidenetsList',
     title: 'IncidenetsList',
     component: IncidenetsList,
+  },
+  {
+    path: '/addIncident/:id?/:add?',
+    title: 'AddIncident',
+    component: AddIncident,
+  },
+  {
+    path: '/clientdetail/:id?',
+    title: 'ClientDetail',
+    component: ClientDetails,
+  },
+  {
+    path: '/settings',
+    title: 'Settings',
+    component: Settings,
   },
 ];
 

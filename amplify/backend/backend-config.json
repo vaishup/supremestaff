@@ -53,6 +53,17 @@
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
+    },
+    "UpdateStaffIdInClient": {
+      "build": true,
+      "dependsOn": [],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "test1": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
     }
   },
   "parameters": {
@@ -69,6 +80,38 @@
         {
           "category": "function",
           "resourceName": "CreateStaffLogin"
+        }
+      ]
+    },
+    "AMPLIFY_function_UpdateStaffIdInClient_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "UpdateStaffIdInClient"
+        }
+      ]
+    },
+    "AMPLIFY_function_UpdateStaffIdInClient_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "UpdateStaffIdInClient"
+        }
+      ]
+    },
+    "AMPLIFY_function_test1_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "test1"
+        }
+      ]
+    },
+    "AMPLIFY_function_test1_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "test1"
         }
       ]
     }

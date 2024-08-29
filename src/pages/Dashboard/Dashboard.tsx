@@ -203,45 +203,46 @@ const Dashboard = ({}) => {
           </div> */}
         </div>
 
-        {clientList.map((person, index) => (
-          <>
-            <div
-      onClick={() =>
-        navigation(`/clientdetail/${person.id}`)
-      }
-              key={index}
-              className={`rounded-lg p-6 m-4 bg-white flex justify-between gap-x-6 py-5 cursor-pointer transition-transform transform duration-300 ease-in-out ${
-                selectedIndex === index
-                  ? "bg-black shadow-lg border-2 border-gray-400"
-                  : "bg-black001 hover:bg-[#f4ded7] hover:scale-105 hover:shadow-xl"
-              }`}
-            >
-              <div className="flex min-w-0 gap-x-4">
-                {/* <img
-                  className="h-12 w-12 flex-none rounded-full bg-gray-50"
-                  src={person.imageUrl}
-                  alt={person.name}
-                /> */}
-                <div className="min-w-0 flex-auto">
-                  <p className="text-sm font-semibold leading-6 text-whites-100">
-                    {person.bname}
-                  </p>
-                  <p className="mt-1 truncate text-xs leading-5 text-gray-500">
-                    {person.email}
-                  </p>
-                </div>
-              </div>
-              <button
-                className="flex items-center justify-center text-black transition duration-200 ease-in-out group p-2 rounded-full bg-transparent hover:bg-white hover:shadow-lg"
-                onClick={() =>
-                  navigation(`/addIncident/${person.id}/${person.address}`)
-                }
-              >
-                <PlusIcon className="text-black group-hover:text-blue-600" />
-              </button>
-            </div>
-          </>
-        ))}
+        <div>
+  {clientList.length > 0 ? (
+    clientList.map((person, index) => (
+      <div
+        onClick={() => navigation(`/clientdetail/${person.id}`)}
+        key={index}
+        className={`rounded-lg p-6 m-4 bg-white flex justify-between gap-x-6 py-5 cursor-pointer transition-transform transform duration-300 ease-in-out ${
+          selectedIndex === index
+            ? "bg-black shadow-lg border-2 border-gray-400"
+            : "bg-black001 hover:bg-[#f4ded7] hover:scale-105 hover:shadow-xl"
+        }`}
+      >
+        <div className="flex min-w-0 gap-x-4">
+          <div className="min-w-0 flex-auto">
+            <p className="text-sm font-semibold leading-6 text-whites-100">
+              {person.bname}
+            </p>
+            <p className="mt-1 truncate text-xs leading-5 text-gray-500">
+              {person.email}
+            </p>
+          </div>
+        </div>
+        <button
+          className="flex items-center justify-center text-black transition duration-200 ease-in-out group p-2 rounded-full bg-transparent hover:bg-white hover:shadow-lg"
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent parent div's onClick from firing
+            navigation(`/addIncident/${person.id}/${person.address}`);
+          }}
+        >
+          <PlusIcon className="text-black group-hover:text-blue-600" />
+        </button>
+      </div>
+    ))
+  ) : (
+    <div className="p-6 m-4 bg-white rounded-lg shadow-lg text-center">
+      <p className="text-gray-500">You have no any clients.</p>
+    </div>
+  )}
+</div>
+
       </div>
 
       {/* <div className="w-full p-20  flex flex-col items-center justify-center p-10"> */}

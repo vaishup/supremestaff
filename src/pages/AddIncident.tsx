@@ -1,26 +1,28 @@
-import { useState, useEffect } from "react";
-import Breadcrumb from "../components/Breadcrumbs/Breadcrumb";
-import DefaultLayout from "../layout/DefaultLayout";
-import { ArrowUpFromLine } from "lucide-react";
+import { useState, useEffect } from 'react';
+import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
+import DefaultLayout from '../layout/DefaultLayout';
+import { ArrowUpFromLine } from 'lucide-react';
 import {
   getTableID,
   getUserInfo,
   getDriverByUserId,
-} from "../hooks/authServices";
-import { generateClient } from "aws-amplify/api";
-import * as mutation from "../graphql/mutations.js";
-import { useParams, useNavigate } from "react-router-dom"; // Import hooks from react-router-dom
-import { uploadData } from "aws-amplify/storage";
-import { useDropzone } from "react-dropzone";
-import { getUrl } from "aws-amplify/storage";
-import { setDate } from "date-fns";
-import { Modal } from "antd";
-import { Check } from "lucide-react";
+} from '../hooks/authServices';
+import { generateClient } from 'aws-amplify/api';
+import * as mutation from '../graphql/mutations.js';
+import { useParams, useNavigate } from 'react-router-dom'; // Import hooks from react-router-dom
+import { uploadData } from 'aws-amplify/storage';
+import { useDropzone } from 'react-dropzone';
+import { getUrl } from 'aws-amplify/storage';
+import { setDate } from 'date-fns';
+import { Modal } from 'antd';
+import { Check } from 'lucide-react';
+import UserOne from '../images/document.png';
+
 const AddIncident = () => {
   const [staffname, setStaffName] = useState();
   const [staffid, setStaffId] = useState();
   const [email, setEmail] = useState();
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState('');
   const [title, setTitle] = useState();
   const [desc, setDec] = useState();
   const [dateTime, setTime] = useState();
@@ -51,23 +53,24 @@ const AddIncident = () => {
     const userId = await getTableID();
     const userDetail: any = await getDriverByUserId(`${userId}`);
 
-    setStaffName(userDetail.fname.trim() + " " + userDetail.lname.trim());
+    setStaffName(userDetail.fname.trim() + ' ' + userDetail.lname.trim());
     setEmail(userDetail.email);
     setStaffId(userDetail.id);
   };
 
   const validate = () => {
     const errors = {};
-    if (!title) errors.name = "title is required";
-    if (!desc) errors.desc = "Descriptionis required";
-    if (!dateTime) errors.datetime = "Date and Time is required";
+    if (!title) errors.name = 'title is required';
+    if (!desc) errors.desc = 'Descriptionis required';
+    if (!dateTime) errors.datetime = 'Date and Time is required';
 
-    if (!location) errors.address = "Address is required";
+    if (!location) errors.address = 'Address is required';
     if (files.length > 10) {
-      errors.fileUpload = "You can only upload up to 10 images.";
+      errors.fileUpload = 'You can only upload up to 10 images.';
     }
     return errors;
   };
+
   const API = generateClient();
   const createTheIncidents = /* GraphQL */ `
     mutation CreateTheIncidents(
@@ -86,82 +89,106 @@ const AddIncident = () => {
         comments
         dateTime
         staffid
-        theClients {
-          nextToken
-          __typename
-        }
         createdAt
         updatedAt
         __typename
       }
     }
   `;
+
+  const updateTheIncidents = /* GraphQL */ `
+  mutation UpdateTheIncidents(
+    $input: UpdateTheIncidentsInput!
+    $condition: ModelTheIncidentsConditionInput
+  ) {
+    updateTheIncidents(input: $input, condition: $condition) {
+      id
+      title
+      description
+      clientid
+      address
+      attachments
+      conversationHistory
+      status
+      comments
+     
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
   const handleSubmit = async () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-    const incidentInput = {
-      title: title, // Assuming `title` is a variable holding the title value
-      description: desc, // Assuming `desc` is a variable holding the description value
-      clientid: id, // Assuming `clientId` is a variable holding the client ID
-      address: add, // Assuming `address` is a variable holding the address value
-      staffid: staffid,
-      dateTime: dateTime,
-      //attachments: attachments, // Assuming `attachments` is an array holding file attachments
-      //conversationHistory: conversationHistory, // Assuming `conversationHistory` is an object/JSON string holding the conversation history
-      status: "pending", // Assuming `status` is a variable holding the status of the incident
-      //comments: comments // Assuming `comments` is a variable holding any additional comments
-    };
-
-    const incidentResponse = await API.graphql({
-      query: createTheIncidents,
-      variables: { input: incidentInput },
-    });
-    const createdItem = incidentResponse.data.createTheIncidents;
-    console.log(createdItem);
-    const incidentid = createdItem.id;
-
+  
     try {
-      const uploadedFiles = await Promise.all(
-        filePreviewss.map((file) => uploadToS3s(file, incidentid, file.name))
-      );
-      // const uploadedFileKey = await uploadToS3(files, clientId);
-      console.log("Files uploaded successfully:", uploadedFiles);
-      const updateInput = {
-        id: incidentid,
-        attachments: uploadedFiles,
+      const incidentInput = {
+        title: title,
+        description: desc,
+        clientid: id,
+        address: add,
+        staffid: staffid,
+        dateTime: dateTime,
+        status: 'pending',
       };
-
-      await API.graphql({
-        query: mutation.updateTheIncidents,
-        variables: { input: updateInput },
+  
+      console.log('incidentInput...', incidentInput);
+  
+      const incidentResponse = await API.graphql({
+        query: createTheIncidents,
+        variables: { input: incidentInput },
       });
-      console.log(createdItem, "suceesfully created");
+  
+      const createdItem = incidentResponse.data.createTheIncidents;
+      const incidentid = createdItem.id;
+  
+      try {
+        const uploadedFiles = await Promise.all(
+          filePreviews.map((preview) => uploadToS3s(preview.file, incidentid, preview.name)), // Use the original File object
+        );
+        const updateInput = {
+          id: incidentid,
+          attachments: uploadedFiles,
+        };
+        const UPDATE=    await API.graphql({
+          query: updateTheIncidents,
+          variables: { input: updateInput },
+        });
+        const updatesincident = UPDATE.data.updateTheIncidents;
+
+        console.log('incidentResponse', incidentResponse);
+        console.log(updatesincident, 'successfully created');
       setIsOpen(true);
-      // setClientId(clientId);
-      // setIsOpen(true);
-      // Handle the success (e.g., update UI, make further API calls)
+      } catch (error) {
+        console.error('Error uploading file:', error);
+      }
     } catch (error) {
-      console.error("Error uploading file:", error);
-      // Handle the error (e.g., display error message to user)
+      console.error('Error CREATING incident:', error);
     }
-    // navigation("/dashboard");
   };
+  
   /// file  upload-------------------
-  const handleFileChange = (event) => {
+  const handleFileChanges = (event) => {
     const selectedFiles = Array.from(event.target.files);
-
-    setFiles(selectedFiles);
-    setFilePreviewss([...filePreviewss, ...selectedFiles]);
-
-    // Generate file previews
-    const previews = selectedFiles.map((file) => URL.createObjectURL(file));
-    setFilePreviews(previews);
+  
+    // Generate file previews and store the actual file objects
+    const previews = selectedFiles.map((file) => {
+      const isImage = file.type.startsWith('image/');
+      return {
+        file: file, // Store the original File object
+        url: isImage ? URL.createObjectURL(file) : null, // Generate preview for image files only
+        name: file.name,
+        isImage: isImage, // Flag to check if the file is an image
+      };
+    });
+    setFilePreviews([...filePreviews, ...previews]); // Append the new previews to existing ones
   };
+  
 
- 
   const onDrop = (acceptedFiles: File[]) => {
     setFilePreviewss([...filePreviewss, ...acceptedFiles]);
   };
@@ -169,36 +196,33 @@ const AddIncident = () => {
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept:
-      "image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      'image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   });
   const uploadToS3s = async (file, ticketId, fileName) => {
     try {
-      console.log("sds..", file, ticketId, fileName);
-
       const fullKey = `Incidents/${ticketId}/image/${fileName}`;
 
       const result = await uploadData({
         key: fullKey,
         data: file,
         options: {
-          accessLevel: "guest", // Change as necessary (guest, private, protected)
+          accessLevel: 'guest', // Change as necessary (guest, private, protected)
         },
       });
-
-      console.log("Uploaded file key:", fullKey); // Log the key for verification
+      console.log('Uploaded file key:', fullKey); // Log the key for verification
       return fullKey; // Return the key to use it in the mutation
     } catch (error) {
-      console.error("Error uploading to S3: ", error);
+      console.error('Error uploading to S3: ', error);
       throw error; // Rethrow the error for handling in the calling function
     }
   };
   const handleDialogue = () => {
     setIsOpen(false);
-    navigation(`/dashboard`);
+    navigation(`/`);
   };
   const handleCancle = () => {
     setIsOpen(false);
-    navigation("/dashboard");
+    navigation('/dashboard');
   };
   return (
     <>
@@ -219,8 +243,8 @@ const AddIncident = () => {
             key="back"
             onClick={handleDialogue}
           >
-            {" "}
-            OK{" "}
+            {' '}
+            OK{' '}
           </button>,
         ]}
       >
@@ -352,7 +376,7 @@ const AddIncident = () => {
                   <input
                     type="file"
                     multiple
-                    onChange={handleFileChange}
+                    onChange={handleFileChanges}
                     className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-4 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                   />
                   {errors.fileUpload && (
@@ -361,18 +385,31 @@ const AddIncident = () => {
 
                   <div className="mt-4 flex flex-wrap gap-4">
                     {filePreviews.map((preview, index) => (
-                      <img
-                        key={index}
-                        className="m-3"
-                        width={120}
-                        height={120}
-                        src={preview}
-                        alt={`Preview ${index}`}
-                      />
+                      <div key={index} className="m-3">
+                        {preview.isImage ? (
+                          <img
+                            width={120}
+                            height={120}
+                            src={preview.url}
+                            alt={`Preview ${index}`}
+                            className="rounded border border-gray-300"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center w-28 h-28 bg-gray-200  rounded">
+                            <img
+                              src={UserOne}
+                              alt="User"
+                              width={80}
+                              height={80}
+                            />
+
+                            <p className="text-xs mt-2">{preview.name}</p>
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>
-
                 <div className="mb-6">
                   <label className="mb-2.5 block text-black dark:text-white">
                     Description

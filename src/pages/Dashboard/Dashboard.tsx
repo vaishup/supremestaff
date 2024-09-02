@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from 'react';
 import {
   ChevronLeft,
   Download,
@@ -12,86 +12,35 @@ import {
   UserMinus,
   UserRoundPlus,
   X,
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   getTableID,
   getUserInfo,
   getDriverByUserId,
-} from "../../hooks/authServices";
-import { log } from "console";
-import DefaultLayout from "../../layout/DefaultLayout";
+} from '../../hooks/authServices';
+import { log } from 'console';
+import DefaultLayout from '../../layout/DefaultLayout';
 import {
   getTheClient,
   pharmacyGroupCreationRequestsByPharmacyID,
   getTheStaff,
-} from "../../graphql/queries";
+} from '../../graphql/queries';
 import {
   signIn,
   confirmSignUp,
   signOut,
   getCurrentUser,
   updateUserAttribute,
-} from "aws-amplify/auth";
-import { generateClient } from "aws-amplify/api";
+} from 'aws-amplify/auth';
+import { generateClient } from 'aws-amplify/api';
 
 const Dashboard = ({}) => {
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState('');
   const [staffList, setStaffList] = useState();
   const [clientList, setClientist] = useState([]);
   const client = generateClient();
 
-  const people = [
-    {
-      name: "Leslie Alexander",
-      email: "leslie.alexander@example.com",
-      role: "Co-Founder / CEO",
-      lastSeen: "3h ago",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-    {
-      name: "Michael Foster",
-      email: "michael.foster@example.com",
-      role: "CTO",
-      lastSeen: "5h ago",
-      imageUrl:
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-    {
-      name: "Lindsay Walton",
-      email: "lindsay.walton@example.com",
-      role: "Front-end Developer",
-      lastSeen: "2d ago",
-      imageUrl:
-        "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-    {
-      name: "Leslie Alexander",
-      email: "leslie.alexander@example.com",
-      role: "Co-Founder / CEO",
-      lastSeen: "3h ago",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-    {
-      name: "Michael Foster",
-      email: "michael.foster@example.com",
-      role: "CTO",
-      lastSeen: "5h ago",
-      imageUrl:
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-    {
-      name: "Lindsay Walton",
-      email: "lindsay.walton@example.com",
-      role: "Front-end Developer",
-      lastSeen: "2d ago",
-      imageUrl:
-        "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-    // Add more people as needed
-  ];
   const [selectedIndex, setSelectedIndex] = useState(null);
   useEffect(() => {
     fetchBatch();
@@ -100,10 +49,10 @@ const Dashboard = ({}) => {
   const handleLogout = async () => {
     try {
       const response = await signOut();
-      console.log("signout response ", response);
-      localStorage.removeItem("loginTimestamp");
+      console.log('signout response ', response);
+      localStorage.removeItem('loginTimestamp');
     } catch (error) {
-      console.log("error signing out: ", error);
+      console.log('error signing out: ', error);
     }
   };
 
@@ -119,43 +68,77 @@ const Dashboard = ({}) => {
   const fetchBatch = async () => {
     const userId = await getTableID();
     const userDetail: any = await getDriverByUserId(`${userId}`);
-    console.log("userDetail", userDetail);
-    setUsername(userDetail.fname.trim() + " " + userDetail.lname.trim());
+    setUsername(userDetail.fname.trim() + ' ' + userDetail.lname.trim());
     listClient(userDetail.id);
   };
-  const listClient = async (id) => {
+  const listClient = async (ids) => {
+    console.log('IDs:', ids);
+    
+    const getTheStaffQuery = /* GraphQL */ `
+      query GetTheStaff($id: ID!) {
+        getTheStaff(id: $id) {
+          id
+          fname
+          phoneno
+          lname
+          email
+          joiningdate
+          address
+          clientIds
+          __typename
+        }
+      }
+    `;
+    
     try {
-      const staffdata = await client.graphql({
-        query: getTheStaff,
-        variables: { id: id },
+      const clientData = await client.graphql({
+        query: getTheStaffQuery,
+        variables: { id: ids },
       });
-      const staffData = staffdata.data.getTheStaff;
-
-      setStaffList(staffData); // Store staff data
-
-      // Fetch client details based on clientIds
-      const clientPromises = staffData.clientIds.map((clientId) =>
-        client.graphql({
-          query: getTheClient,
-          variables: { id: clientId },
-        })
-      );
-
-      const clientResponses = await Promise.all(clientPromises);
-
-      const clients = clientResponses.map(
-        (response) => response.data.getTheClient
-      );
-      console.log("clients....", clients);
-
-      setClientist(clients); // Set the client list
+    
+      const staffData = clientData.data.getTheStaff;
+      console.log('clientIds..:', staffData.clientIds);
+      const getTheClients = /* GraphQL */ `
+      query GetTheClient($id: ID!) {
+        getTheClient(id: $id) {
+          id
+          name
+          phoneno
+          bname
+          email
+          contactpersonpho
+          address
+          note
+          attachments
+        
+         
+          __typename
+        }
+      }
+    `;
+      // Assuming clientIds is an array, you can now fetch client details
+      if (staffData.clientIds
+        && staffData.clientIds.length > 0) {
+        const clientPromises = staffData.clientIds.map(clientId =>
+          client.graphql({
+            query: getTheClients, // Ensure getTheClient query is defined and correct
+            variables: { id: clientId },
+          })
+        );
+    
+        const clientResponses = await Promise.all(clientPromises);
+            const clients = clientResponses.map(response => response.data.getTheClient);
+     console.log('clients:', clientResponses);
+     setClientist(clients); // Assuming you want to store this in state
+      }
     } catch (error) {
-      console.error("Error fetching client details:", error);
+      console.error('Error fetching staff details:', error);
     }
   };
+  
 
-  console.log("staffList...", staffList);
-  console.log("clientList...", clientList);
+  console.log('staffList...', staffList);
+  console.log('clientList...', clientList);
 
   return (
     <>
@@ -204,45 +187,44 @@ const Dashboard = ({}) => {
         </div>
 
         <div>
-  {clientList.length > 0 ? (
-    clientList.map((person, index) => (
-      <div
-        onClick={() => navigation(`/clientdetail/${person.id}`)}
-        key={index}
-        className={`rounded-lg p-6 m-4 bg-white flex justify-between gap-x-6 py-5 cursor-pointer transition-transform transform duration-300 ease-in-out ${
-          selectedIndex === index
-            ? "bg-black shadow-lg border-2 border-gray-400"
-            : "bg-black001 hover:bg-[#f4ded7] hover:scale-105 hover:shadow-xl"
-        }`}
-      >
-        <div className="flex min-w-0 gap-x-4">
-          <div className="min-w-0 flex-auto">
-            <p className="text-sm font-semibold leading-6 text-whites-100">
-              {person.bname}
-            </p>
-            <p className="mt-1 truncate text-xs leading-5 text-gray-500">
-              {person.email}
-            </p>
-          </div>
+          {clientList.length > 0 ? (
+            clientList.map((person, index) => (
+              <div
+                onClick={() => navigation(`/clientdetail/${person.id}`)}
+                key={index}
+                className={`rounded-lg p-6 m-4 bg-white flex justify-between gap-x-6 py-5 cursor-pointer transition-transform transform duration-300 ease-in-out ${
+                  selectedIndex === index
+                    ? 'bg-black shadow-lg border-2 border-gray-400'
+                    : 'bg-black001 hover:bg-[#f4ded7] hover:scale-105 hover:shadow-xl'
+                }`}
+              >
+                <div className="flex min-w-0 gap-x-4">
+                  <div className="min-w-0 flex-auto">
+                    <p className="text-sm font-semibold leading-6 text-whites-100">
+                      {person.bname}
+                    </p>
+                    <p className="mt-1 truncate text-xs leading-5 text-gray-500">
+                      {person.email}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  className="flex items-center justify-center text-black transition duration-200 ease-in-out group p-2 rounded-full bg-transparent hover:bg-white hover:shadow-lg"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent parent div's onClick from firing
+                    navigation(`/addIncident/${person.id}/${person.address}`);
+                  }}
+                >
+                  <PlusIcon className="text-black group-hover:text-blue-600" />
+                </button>
+              </div>
+            ))
+          ) : (
+            <div className="p-6 m-4 bg-white rounded-lg shadow-lg text-center">
+              <p className="text-gray-500">You have no any clients.</p>
+            </div>
+          )}
         </div>
-        <button
-          className="flex items-center justify-center text-black transition duration-200 ease-in-out group p-2 rounded-full bg-transparent hover:bg-white hover:shadow-lg"
-          onClick={(e) => {
-            e.stopPropagation(); // Prevent parent div's onClick from firing
-            navigation(`/addIncident/${person.id}/${person.address}`);
-          }}
-        >
-          <PlusIcon className="text-black group-hover:text-blue-600" />
-        </button>
-      </div>
-    ))
-  ) : (
-    <div className="p-6 m-4 bg-white rounded-lg shadow-lg text-center">
-      <p className="text-gray-500">You have no any clients.</p>
-    </div>
-  )}
-</div>
-
       </div>
 
       {/* <div className="w-full p-20  flex flex-col items-center justify-center p-10"> */}

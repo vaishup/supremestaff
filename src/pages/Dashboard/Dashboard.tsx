@@ -72,7 +72,6 @@ const Dashboard = ({}) => {
     listClient(userDetail.id);
   };
   const listClient = async (ids) => {
-    console.log('IDs:', ids);
     
     const getTheStaffQuery = /* GraphQL */ `
       query GetTheStaff($id: ID!) {
@@ -136,9 +135,6 @@ const Dashboard = ({}) => {
     }
   };
   
-
-  console.log('staffList...', staffList);
-  console.log('clientList...', clientList);
 
   return (
     <>
@@ -215,7 +211,8 @@ const Dashboard = ({}) => {
                     navigation(`/addIncident/${person.id}/${person.address}`);
                   }}
                 >
-                  <PlusIcon className="text-black group-hover:text-blue-600" />
+                  Create Incident Report
+                  {/* <PlusIcon className="text-black group-hover:text-blue-600" /> */}
                 </button>
               </div>
             ))

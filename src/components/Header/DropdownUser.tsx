@@ -66,6 +66,7 @@ const DropdownUser = () => {
       console.log("error signing out: ", error);
     }
   };
+
   return (
     <div className="relative">
       <Link

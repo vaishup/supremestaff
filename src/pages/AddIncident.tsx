@@ -17,6 +17,8 @@ import { setDate } from 'date-fns';
 import { Modal } from 'antd';
 import { Check } from 'lucide-react';
 import UserOne from '../images/document.png';
+import { DatePicker } from 'antd';
+import dayjs from 'dayjs';
 
 const AddIncident = () => {
   const [staffname, setStaffName] = useState();
@@ -97,34 +99,35 @@ const AddIncident = () => {
   `;
 
   const updateTheIncidents = /* GraphQL */ `
-  mutation UpdateTheIncidents(
-    $input: UpdateTheIncidentsInput!
-    $condition: ModelTheIncidentsConditionInput
-  ) {
-    updateTheIncidents(input: $input, condition: $condition) {
-      id
-      title
-      description
-      clientid
-      address
-      attachments
-      conversationHistory
-      status
-      comments
-     
-      createdAt
-      updatedAt
-      __typename
+    mutation UpdateTheIncidents(
+      $input: UpdateTheIncidentsInput!
+      $condition: ModelTheIncidentsConditionInput
+    ) {
+      updateTheIncidents(input: $input, condition: $condition) {
+        id
+        title
+        description
+        clientid
+        address
+        attachments
+        conversationHistory
+        status
+        comments
+
+        createdAt
+        updatedAt
+        __typename
+      }
     }
-  }
-`;
+  `;
   const handleSubmit = async () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-  
+    const format = dayjs(selectedDate).format('YYYY-MM-DD HH:mm:ss');
+
     try {
       const incidentInput = {
         title: title,
@@ -132,49 +135,28 @@ const AddIncident = () => {
         clientid: id,
         address: add,
         staffid: staffid,
-        dateTime: dateTime,
+        dateTime: format,
         status: 'pending',
       };
-  
-      console.log('incidentInput...', incidentInput);
-  
-      const incidentResponse = await API.graphql({
-        query: createTheIncidents,
-        variables: { input: incidentInput },
-      });
-  
-      const createdItem = incidentResponse.data.createTheIncidents;
-      const incidentid = createdItem.id;
-  
-      try {
-        const uploadedFiles = await Promise.all(
-          filePreviews.map((preview) => uploadToS3s(preview.file, incidentid, preview.name)), // Use the original File object
-        );
-        const updateInput = {
-          id: incidentid,
-          attachments: uploadedFiles,
-        };
-        const UPDATE=    await API.graphql({
-          query: updateTheIncidents,
-          variables: { input: updateInput },
-        });
-        const updatesincident = UPDATE.data.updateTheIncidents;
 
-        console.log('incidentResponse', incidentResponse);
-        console.log(updatesincident, 'successfully created');
-      setIsOpen(true);
-      } catch (error) {
-        console.error('Error uploading file:', error);
-      }
+      console.log('incidentInput...', incidentInput);
+
+      // const incidentResponse = await API.graphql({
+      //   query: createTheIncidents,
+      //   variables: { input: incidentInput },
+      // });
+
+      // const createdItem = incidentResponse.data.createTheIncidents;
+      // const incidentid = createdItem.id;
     } catch (error) {
       console.error('Error CREATING incident:', error);
     }
   };
-  
+
   /// file  upload-------------------
   const handleFileChanges = (event) => {
     const selectedFiles = Array.from(event.target.files);
-  
+
     // Generate file previews and store the actual file objects
     const previews = selectedFiles.map((file) => {
       const isImage = file.type.startsWith('image/');
@@ -187,7 +169,6 @@ const AddIncident = () => {
     });
     setFilePreviews([...filePreviews, ...previews]); // Append the new previews to existing ones
   };
-  
 
   const onDrop = (acceptedFiles: File[]) => {
     setFilePreviewss([...filePreviewss, ...acceptedFiles]);
@@ -224,6 +205,21 @@ const AddIncident = () => {
     setIsOpen(false);
     navigation('/dashboard');
   };
+
+  const [selectedDate, setSelectedDate] = useState(dayjs());
+
+  const disabledDate = (current) => {
+    // Can not select days after today
+    return current && current > dayjs().endOf('day');
+  };
+
+  const handleDateChange = (date) => {
+    console.log(dayjs(date).format('YYYY-MM-DD HH:mm:ss'));
+
+    // Ensure date is formatted correctly when setting it
+    setSelectedDate(date);
+  };
+
   return (
     <>
       <Breadcrumb pageName="Add Incident" />
@@ -281,7 +277,7 @@ const AddIncident = () => {
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
               <h3 className="font-medium text-black dark:text-white">
-                Incident's information
+                Incident Report
               </h3>
             </div>
             <form action="#">
@@ -332,23 +328,19 @@ const AddIncident = () => {
                     )}
                   </div>
 
-                  <div className="w-full xl:w-1/2">
-                    <label className="mb-2.5 block text-black dark:text-white">
+                  <div className="w-full ">
+                    <label className="mb-3 block text-sm font-medium text-black dark:text-white">
                       Date & Time
-                      <span className="text-meta-1">*</span>
                     </label>
-                    <input
-                      value={dateTime}
-                      onChange={(e) => setDate(e.target.value)}
-                      type="text"
-                      placeholder="Enter your    Date & Time"
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                    <DatePicker
+                      disabledDate={disabledDate}
+                      value={selectedDate}
+                      onChange={handleDateChange}
+                      showTime // Allows time selection
+                      format="YYYY-MM-DD HH:mm:ss" // Formats date and time
+                      placeholder="Enter Date&Time"
+                      className="w-full text-left rounded border border-stroke bg-gray py-3 pr-4.5 text-black focus:border-primary focus-visible:outline-none dark:border-strokedark dark:bg-meta-4 dark:text-white dark:focus:border-primary"
                     />
-                    {errors.datetime && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.datetime}
-                      </p>
-                    )}
                   </div>
                 </div>
                 <div className="mb-4.5">

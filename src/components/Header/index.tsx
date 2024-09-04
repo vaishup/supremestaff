@@ -47,7 +47,7 @@ const Header = (props: {
           <img src={Logo} alt="Logo" width={100} />{" "}
           
         </Link>
-        <p className="text-xl font-bold text-[#531413]">Welcome to {username} </p>
+        <p className="text-xl font-bold text-[#531413]">Welcome  {username} </p>
         </div>
         <div className="flex items-center gap-2 sm:gap-4 lg:hidden">
           {/* <!-- Hamburger Toggle BTN --> */}

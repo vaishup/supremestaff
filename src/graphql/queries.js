@@ -1,6 +1,76 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
+export const getThePost = /* GraphQL */ `
+  query GetThePost($id: ID!) {
+    getThePost(id: $id) {
+      id
+      note
+      date
+      clientID
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const listThePosts = /* GraphQL */ `
+  query ListThePosts(
+    $filter: ModelThePostFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listThePosts(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        note
+        date
+        clientID
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getTheResident = /* GraphQL */ `
+  query GetTheResident($id: ID!) {
+    getTheResident(id: $id) {
+      id
+      Name
+      phoneNo
+      address
+      clientID
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const listTheResidents = /* GraphQL */ `
+  query ListTheResidents(
+    $filter: ModelTheResidentFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listTheResidents(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        Name
+        phoneNo
+        address
+        clientID
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
 export const getTheClient = /* GraphQL */ `
   query GetTheClient($id: ID!) {
     getTheClient(id: $id) {
@@ -13,9 +83,33 @@ export const getTheClient = /* GraphQL */ `
       address
       note
       attachments
-      thestaffID
+      staffids
+      theStaff {
+        nextToken
+        __typename
+      }
+      theIncidents {
+        id
+        title
+        description
+        clientid
+        address
+        attachments
+        conversationHistory
+        status
+        comments
+        staffid
+        dateTime
+        createdAt
+        updatedAt
+        theIncidentsTheStaffId
+        theIncidentsTheClientId
+        theIncidentsBytheClientIDId
+        __typename
+      }
       createdAt
       updatedAt
+      theClientTheIncidentsId
       __typename
     }
   }
@@ -37,44 +131,10 @@ export const listTheClients = /* GraphQL */ `
         address
         note
         attachments
-        thestaffID
+        staffids
         createdAt
         updatedAt
-        __typename
-      }
-      nextToken
-      __typename
-    }
-  }
-`;
-export const theClientsByThestaffID = /* GraphQL */ `
-  query TheClientsByThestaffID(
-    $thestaffID: ID!
-    $sortDirection: ModelSortDirection
-    $filter: ModeltheClientFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    theClientsByThestaffID(
-      thestaffID: $thestaffID
-      sortDirection: $sortDirection
-      filter: $filter
-      limit: $limit
-      nextToken: $nextToken
-    ) {
-      items {
-        id
-        name
-        phoneno
-        bname
-        email
-        contactpersonpho
-        address
-        note
-        attachments
-        thestaffID
-        createdAt
-        updatedAt
+        theClientTheIncidentsId
         __typename
       }
       nextToken
@@ -91,12 +151,26 @@ export const getTheStaff = /* GraphQL */ `
       lname
       email
       joiningdate
+      theClientID
       address
-      theClients {
-        nextToken
+      clientIds
+      theClient {
+        id
+        name
+        phoneno
+        bname
+        email
+        contactpersonpho
+        address
+        note
+        attachments
+        staffids
+        createdAt
+        updatedAt
+        theClientTheIncidentsId
         __typename
       }
-      clientIds
+      staffType
       createdAt
       updatedAt
       __typename
@@ -117,8 +191,45 @@ export const listTheStaffs = /* GraphQL */ `
         lname
         email
         joiningdate
+        theClientID
         address
         clientIds
+        staffType
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const theStaffsByTheClientID = /* GraphQL */ `
+  query TheStaffsByTheClientID(
+    $theClientID: ID!
+    $sortDirection: ModelSortDirection
+    $filter: ModeltheStaffFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    theStaffsByTheClientID(
+      theClientID: $theClientID
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        fname
+        phoneno
+        lname
+        email
+        joiningdate
+        theClientID
+        address
+        clientIds
+        staffType
         createdAt
         updatedAt
         __typename
@@ -145,9 +256,10 @@ export const getTask = /* GraphQL */ `
         address
         note
         attachments
-        thestaffID
+        staffids
         createdAt
         updatedAt
+        theClientTheIncidentsId
         __typename
       }
       clientId
@@ -193,12 +305,60 @@ export const getTheIncidents = /* GraphQL */ `
       conversationHistory
       status
       comments
-      theClients {
-        nextToken
+      theStaff {
+        id
+        fname
+        phoneno
+        lname
+        email
+        joiningdate
+        theClientID
+        address
+        clientIds
+        staffType
+        createdAt
+        updatedAt
+        __typename
+      }
+      staffid
+      dateTime
+      theClient {
+        id
+        name
+        phoneno
+        bname
+        email
+        contactpersonpho
+        address
+        note
+        attachments
+        staffids
+        createdAt
+        updatedAt
+        theClientTheIncidentsId
+        __typename
+      }
+      bytheClientID {
+        id
+        name
+        phoneno
+        bname
+        email
+        contactpersonpho
+        address
+        note
+        attachments
+        staffids
+        createdAt
+        updatedAt
+        theClientTheIncidentsId
         __typename
       }
       createdAt
       updatedAt
+      theIncidentsTheStaffId
+      theIncidentsTheClientId
+      theIncidentsBytheClientIDId
       __typename
     }
   }
@@ -220,8 +380,13 @@ export const listTheIncidents = /* GraphQL */ `
         conversationHistory
         status
         comments
+        staffid
+        dateTime
         createdAt
         updatedAt
+        theIncidentsTheStaffId
+        theIncidentsTheClientId
+        theIncidentsBytheClientIDId
         __typename
       }
       nextToken

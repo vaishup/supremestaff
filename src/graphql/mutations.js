@@ -1,6 +1,105 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
+export const createThePost = /* GraphQL */ `
+  mutation CreateThePost(
+    $input: CreateThePostInput!
+    $condition: ModelThePostConditionInput
+  ) {
+    createThePost(input: $input, condition: $condition) {
+      id
+      note
+      date
+      clientID
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const updateThePost = /* GraphQL */ `
+  mutation UpdateThePost(
+    $input: UpdateThePostInput!
+    $condition: ModelThePostConditionInput
+  ) {
+    updateThePost(input: $input, condition: $condition) {
+      id
+      note
+      date
+      clientID
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const deleteThePost = /* GraphQL */ `
+  mutation DeleteThePost(
+    $input: DeleteThePostInput!
+    $condition: ModelThePostConditionInput
+  ) {
+    deleteThePost(input: $input, condition: $condition) {
+      id
+      note
+      date
+      clientID
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const createTheResident = /* GraphQL */ `
+  mutation CreateTheResident(
+    $input: CreateTheResidentInput!
+    $condition: ModelTheResidentConditionInput
+  ) {
+    createTheResident(input: $input, condition: $condition) {
+      id
+      Name
+      phoneNo
+      address
+      clientID
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const updateTheResident = /* GraphQL */ `
+  mutation UpdateTheResident(
+    $input: UpdateTheResidentInput!
+    $condition: ModelTheResidentConditionInput
+  ) {
+    updateTheResident(input: $input, condition: $condition) {
+      id
+      Name
+      phoneNo
+      address
+      clientID
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const deleteTheResident = /* GraphQL */ `
+  mutation DeleteTheResident(
+    $input: DeleteTheResidentInput!
+    $condition: ModelTheResidentConditionInput
+  ) {
+    deleteTheResident(input: $input, condition: $condition) {
+      id
+      Name
+      phoneNo
+      address
+      clientID
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
 export const createTheClient = /* GraphQL */ `
   mutation CreateTheClient(
     $input: CreateTheClientInput!
@@ -16,9 +115,33 @@ export const createTheClient = /* GraphQL */ `
       address
       note
       attachments
-      thestaffID
+      staffids
+      theStaff {
+        nextToken
+        __typename
+      }
+      theIncidents {
+        id
+        title
+        description
+        clientid
+        address
+        attachments
+        conversationHistory
+        status
+        comments
+        staffid
+        dateTime
+        createdAt
+        updatedAt
+        theIncidentsTheStaffId
+        theIncidentsTheClientId
+        theIncidentsBytheClientIDId
+        __typename
+      }
       createdAt
       updatedAt
+      theClientTheIncidentsId
       __typename
     }
   }
@@ -38,9 +161,33 @@ export const updateTheClient = /* GraphQL */ `
       address
       note
       attachments
-      thestaffID
+      staffids
+      theStaff {
+        nextToken
+        __typename
+      }
+      theIncidents {
+        id
+        title
+        description
+        clientid
+        address
+        attachments
+        conversationHistory
+        status
+        comments
+        staffid
+        dateTime
+        createdAt
+        updatedAt
+        theIncidentsTheStaffId
+        theIncidentsTheClientId
+        theIncidentsBytheClientIDId
+        __typename
+      }
       createdAt
       updatedAt
+      theClientTheIncidentsId
       __typename
     }
   }
@@ -60,9 +207,33 @@ export const deleteTheClient = /* GraphQL */ `
       address
       note
       attachments
-      thestaffID
+      staffids
+      theStaff {
+        nextToken
+        __typename
+      }
+      theIncidents {
+        id
+        title
+        description
+        clientid
+        address
+        attachments
+        conversationHistory
+        status
+        comments
+        staffid
+        dateTime
+        createdAt
+        updatedAt
+        theIncidentsTheStaffId
+        theIncidentsTheClientId
+        theIncidentsBytheClientIDId
+        __typename
+      }
       createdAt
       updatedAt
+      theClientTheIncidentsId
       __typename
     }
   }
@@ -79,12 +250,26 @@ export const createTheStaff = /* GraphQL */ `
       lname
       email
       joiningdate
+      theClientID
       address
-      theClients {
-        nextToken
+      clientIds
+      theClient {
+        id
+        name
+        phoneno
+        bname
+        email
+        contactpersonpho
+        address
+        note
+        attachments
+        staffids
+        createdAt
+        updatedAt
+        theClientTheIncidentsId
         __typename
       }
-      clientIds
+      staffType
       createdAt
       updatedAt
       __typename
@@ -103,12 +288,26 @@ export const updateTheStaff = /* GraphQL */ `
       lname
       email
       joiningdate
+      theClientID
       address
-      theClients {
-        nextToken
+      clientIds
+      theClient {
+        id
+        name
+        phoneno
+        bname
+        email
+        contactpersonpho
+        address
+        note
+        attachments
+        staffids
+        createdAt
+        updatedAt
+        theClientTheIncidentsId
         __typename
       }
-      clientIds
+      staffType
       createdAt
       updatedAt
       __typename
@@ -127,12 +326,26 @@ export const deleteTheStaff = /* GraphQL */ `
       lname
       email
       joiningdate
+      theClientID
       address
-      theClients {
-        nextToken
+      clientIds
+      theClient {
+        id
+        name
+        phoneno
+        bname
+        email
+        contactpersonpho
+        address
+        note
+        attachments
+        staffids
+        createdAt
+        updatedAt
+        theClientTheIncidentsId
         __typename
       }
-      clientIds
+      staffType
       createdAt
       updatedAt
       __typename
@@ -159,9 +372,10 @@ export const createTask = /* GraphQL */ `
         address
         note
         attachments
-        thestaffID
+        staffids
         createdAt
         updatedAt
+        theClientTheIncidentsId
         __typename
       }
       clientId
@@ -192,9 +406,10 @@ export const updateTask = /* GraphQL */ `
         address
         note
         attachments
-        thestaffID
+        staffids
         createdAt
         updatedAt
+        theClientTheIncidentsId
         __typename
       }
       clientId
@@ -225,9 +440,10 @@ export const deleteTask = /* GraphQL */ `
         address
         note
         attachments
-        thestaffID
+        staffids
         createdAt
         updatedAt
+        theClientTheIncidentsId
         __typename
       }
       clientId
@@ -253,12 +469,60 @@ export const createTheIncidents = /* GraphQL */ `
       conversationHistory
       status
       comments
-      theClients {
-        nextToken
+      theStaff {
+        id
+        fname
+        phoneno
+        lname
+        email
+        joiningdate
+        theClientID
+        address
+        clientIds
+        staffType
+        createdAt
+        updatedAt
+        __typename
+      }
+      staffid
+      dateTime
+      theClient {
+        id
+        name
+        phoneno
+        bname
+        email
+        contactpersonpho
+        address
+        note
+        attachments
+        staffids
+        createdAt
+        updatedAt
+        theClientTheIncidentsId
+        __typename
+      }
+      bytheClientID {
+        id
+        name
+        phoneno
+        bname
+        email
+        contactpersonpho
+        address
+        note
+        attachments
+        staffids
+        createdAt
+        updatedAt
+        theClientTheIncidentsId
         __typename
       }
       createdAt
       updatedAt
+      theIncidentsTheStaffId
+      theIncidentsTheClientId
+      theIncidentsBytheClientIDId
       __typename
     }
   }
@@ -278,12 +542,60 @@ export const updateTheIncidents = /* GraphQL */ `
       conversationHistory
       status
       comments
-      theClients {
-        nextToken
+      theStaff {
+        id
+        fname
+        phoneno
+        lname
+        email
+        joiningdate
+        theClientID
+        address
+        clientIds
+        staffType
+        createdAt
+        updatedAt
+        __typename
+      }
+      staffid
+      dateTime
+      theClient {
+        id
+        name
+        phoneno
+        bname
+        email
+        contactpersonpho
+        address
+        note
+        attachments
+        staffids
+        createdAt
+        updatedAt
+        theClientTheIncidentsId
+        __typename
+      }
+      bytheClientID {
+        id
+        name
+        phoneno
+        bname
+        email
+        contactpersonpho
+        address
+        note
+        attachments
+        staffids
+        createdAt
+        updatedAt
+        theClientTheIncidentsId
         __typename
       }
       createdAt
       updatedAt
+      theIncidentsTheStaffId
+      theIncidentsTheClientId
+      theIncidentsBytheClientIDId
       __typename
     }
   }
@@ -303,12 +615,60 @@ export const deleteTheIncidents = /* GraphQL */ `
       conversationHistory
       status
       comments
-      theClients {
-        nextToken
+      theStaff {
+        id
+        fname
+        phoneno
+        lname
+        email
+        joiningdate
+        theClientID
+        address
+        clientIds
+        staffType
+        createdAt
+        updatedAt
+        __typename
+      }
+      staffid
+      dateTime
+      theClient {
+        id
+        name
+        phoneno
+        bname
+        email
+        contactpersonpho
+        address
+        note
+        attachments
+        staffids
+        createdAt
+        updatedAt
+        theClientTheIncidentsId
+        __typename
+      }
+      bytheClientID {
+        id
+        name
+        phoneno
+        bname
+        email
+        contactpersonpho
+        address
+        note
+        attachments
+        staffids
+        createdAt
+        updatedAt
+        theClientTheIncidentsId
         __typename
       }
       createdAt
       updatedAt
+      theIncidentsTheStaffId
+      theIncidentsTheClientId
+      theIncidentsBytheClientIDId
       __typename
     }
   }

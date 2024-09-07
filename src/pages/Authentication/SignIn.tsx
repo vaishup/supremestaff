@@ -197,7 +197,9 @@ const SignIn: React.FC<SignInProps> = ({ onLoginSuccess }) => {
                     />
                   </div>
                 </div>
-
+                {errorMsg && (
+                <p className="text-red-500 text-sm mt-1">{errorMsg}</p>
+              )}
                 <div className="mb-5">
                   <input
                     type="submit"

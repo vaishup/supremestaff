@@ -72,7 +72,6 @@ const Dashboard = ({}) => {
     listClient(userDetail.id);
   };
   const listClient = async (ids) => {
-    
     const getTheStaffQuery = /* GraphQL */ `
       query GetTheStaff($id: ID!) {
         getTheStaff(id: $id) {
@@ -88,53 +87,52 @@ const Dashboard = ({}) => {
         }
       }
     `;
-    
+
     try {
       const clientData = await client.graphql({
         query: getTheStaffQuery,
         variables: { id: ids },
       });
-    
+
       const staffData = clientData.data.getTheStaff;
       console.log('clientIds..:', staffData.clientIds);
       const getTheClients = /* GraphQL */ `
-      query GetTheClient($id: ID!) {
-        getTheClient(id: $id) {
-          id
-          name
-          phoneno
-          bname
-          email
-          contactpersonpho
-          address
-          note
-          attachments
-        
-         
-          __typename
+        query GetTheClient($id: ID!) {
+          getTheClient(id: $id) {
+            id
+            name
+            phoneno
+            bname
+            email
+            contactpersonpho
+            address
+            note
+            attachments
+
+            __typename
+          }
         }
-      }
-    `;
+      `;
       // Assuming clientIds is an array, you can now fetch client details
-      if (staffData.clientIds
-        && staffData.clientIds.length > 0) {
-        const clientPromises = staffData.clientIds.map(clientId =>
+      if (staffData.clientIds && staffData.clientIds.length > 0) {
+        const clientPromises = staffData.clientIds.map((clientId) =>
           client.graphql({
             query: getTheClients, // Ensure getTheClient query is defined and correct
             variables: { id: clientId },
-          })
+          }),
         );
-    
+
         const clientResponses = await Promise.all(clientPromises);
-            const clients = clientResponses.map(response => response.data.getTheClient);
-     console.log('clients:', clientResponses);
-     setClientist(clients); // Assuming you want to store this in state
+        const clients = clientResponses.map(
+          (response) => response.data.getTheClient,
+        );
+        console.log('clients:', clientResponses);
+        setClientist(clients); // Assuming you want to store this in state
       }
     } catch (error) {
       console.error('Error fetching staff details:', error);
     }
   };
-  
 
   return (
     <>
@@ -143,7 +141,7 @@ const Dashboard = ({}) => {
       <div className="w-full  md:w-4/5 lg:w-3/4 p-4 mx-auto">
         <div className="flex flex-col sm:flex-row sm:space-x-4 w-full justify-between mb-6">
           <p className="text-2xl sm:text-md md:text-2xl font-bold text-primary font-jura mb-4 sm:mb-0">
-            Client List
+            Properties
           </p>
 
           {/* <button

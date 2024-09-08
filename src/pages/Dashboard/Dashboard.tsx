@@ -26,6 +26,8 @@ import {
   pharmacyGroupCreationRequestsByPharmacyID,
   getTheStaff,
 } from '../../graphql/queries';
+import * as mutation from '../../graphql/mutations.js';
+
 import {
   signIn,
   confirmSignUp,
@@ -108,7 +110,8 @@ const Dashboard = ({}) => {
             address
             note
             attachments
-
+            count
+            countInt
             __typename
           }
         }
@@ -133,7 +136,27 @@ const Dashboard = ({}) => {
       console.error('Error fetching staff details:', error);
     }
   };
+  const API = generateClient();
 
+  const handleClick = async (id) => {
+    try {
+      const updateInput = {
+        id: id,
+        count: '0',
+      };
+      console.log('updateInput----', updateInput);
+
+      const aps = await API.graphql({
+        query: mutation.updateTheClient,
+        variables: { input: updateInput },
+      });
+      console.log(aps, 'suceesfully created');
+      navigation(`/clientdetail/${id}`);
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      // Handle the error (e.g., display error message to user)
+    }
+  };
   return (
     <>
       {/* <p className="text-xl font-bold text-[#531413]">Welcome to {username} </p> */}
@@ -184,7 +207,7 @@ const Dashboard = ({}) => {
           {clientList.length > 0 ? (
             clientList.map((person, index) => (
               <div
-                onClick={() => navigation(`/clientdetail/${person.id}`)}
+                onClick={() => handleClick(person.id)}
                 key={index}
                 className={`rounded-lg p-6 m-4 bg-white flex justify-between gap-x-6 py-5 cursor-pointer transition-transform transform duration-300 ease-in-out ${
                   selectedIndex === index
@@ -194,9 +217,17 @@ const Dashboard = ({}) => {
               >
                 <div className="flex min-w-0 gap-x-4">
                   <div className="min-w-0 flex-auto">
-                    <p className="text-sm font-semibold leading-6 text-whites-100">
-                      {person.bname}
-                    </p>
+                    <div className="justify-between w-full flex flex-row">
+                      <p className="text-sm font-semibold leading-6 text-whites-100">
+                        {person.bname}
+                      </p>
+
+                      {person.count > 0 && (
+                        <p className="ml-10 text-center text-sm font-semibold leading-6 text-whites-100">
+                          {person.count} New post
+                        </p>
+                      )}
+                    </div>
                     <p className="mt-1 truncate text-xs leading-5 text-gray-500">
                       {person.email}
                     </p>

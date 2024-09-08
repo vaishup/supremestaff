@@ -13,6 +13,7 @@ import {
   getTheStaff,
   listThePosts,
   listTheResidents,
+  listTheNotes,
   theStaffsByTheClientID,
   theStafftheClientsByTheClientId,
 } from '../graphql/queries';
@@ -59,6 +60,7 @@ const ClientDetails = () => {
   const [taskList, setTskist] = useState([]);
   const [postList, setPost] = useState([]);
   const [residentList, setResident] = useState([]);
+  const [noteList, setNoteList] = useState([]);
   const [staffList, setStaffList] = useState([]);
   const getS3Url = async (key) => {
     try {
@@ -147,6 +149,8 @@ const ClientDetails = () => {
                   query: getTheStaff, // Replace with your actual query to get staff data
                   variables: { id: staffId },
                 });
+                console.log("staffResponse.data.getTheStaff;...",staffResponse.data.getTheStaff);
+                
                 return staffResponse.data.getTheStaff;
               }),
             );
@@ -163,9 +167,9 @@ const ClientDetails = () => {
       listTheIncidentss(id);
       listResidents(id);
       listPost(id);
+      listNote(id);
     }
   }, [id]);
-
   const listTheIncidentss = async (id) => {
     try {
       const response = await client.graphql({
@@ -180,8 +184,10 @@ const ClientDetails = () => {
       });
       const incidentData = response.data.listTheIncidents;
       console.log('incidentData', incidentData);
-
-      setIncidentList(incidentData.items);
+      const sortedTasks = incidentData.sort((a, b) =>
+      new Date(b.createdAt) - new Date(a.createdAt)
+    );
+      setIncidentList(sortedTasks.items);
     } catch (error) {
       console.error('Error fetching incidentData:', error);
       setLoading(false);
@@ -206,7 +212,10 @@ const ClientDetails = () => {
       const clientData = response.data.listTasks;
       console.log('clientData', clientData);
       // Set the client data to state
-      setTskist(clientData.items);
+      const sortedTasks = clientData.items.sort((a, b) =>
+      new Date(b.createdAt) - new Date(a.createdAt)
+    );
+      setTskist(sortedTasks);
       setLoading(false); // Ensure you're setting the items array to state
     } catch (error) {
       console.error('Error fetching listTask:', error);
@@ -228,8 +237,11 @@ const ClientDetails = () => {
       // Access the correct property from the response
       const clientData = response.data.listThePosts;
       console.log('clientData', clientData);
+      const sortedTasks = clientData.items.sort((a, b) =>
+      new Date(b.createdAt) - new Date(a.createdAt)
+    );
       // Set the client data to state
-      setPost(clientData.items);
+      setPost(sortedTasks);
       setLoading(false); // Ensure you're setting the items array to state
     } catch (error) {
       console.error('Error fetching listPost', error);
@@ -254,8 +266,39 @@ const ClientDetails = () => {
       // Access the correct property from the response
       const clientData = response.data.listTheResidents;
       console.log('listResidents', clientData);
+
+      const sortedTasks = clientData.items.sort((a, b) =>
+      new Date(b.createdAt) - new Date(a.createdAt)
+    );
       // Set the client data to state
-      setResident(clientData.items);
+      setResident(sortedTasks);
+      setLoading(false); // Ensure you're setting the items array to state
+    } catch (error) {
+      console.error('Error fetching listResidents:', error);
+      setLoading(false);
+    }
+  };
+
+  const listNote = async (id) => {
+    try {
+      const response = await client.graphql({
+        query: listTheNotes,
+        variables: {
+          filter: {
+            clientID: {
+              eq: id,
+            },
+          },
+        },
+      });
+      // Access the correct property from the response
+      const clientData = response.data.listTheNotes;
+      console.log('listResidents', clientData);
+      const sortedTasks = clientData.items.sort((a, b) =>
+      new Date(b.createdAt) - new Date(a.createdAt)
+    );
+      // Set the client data to state
+      setNoteList(sortedTasks);
       setLoading(false); // Ensure you're setting the items array to state
     } catch (error) {
       console.error('Error fetching listResidents:', error);
@@ -286,7 +329,18 @@ const ClientDetails = () => {
     return errors;
   };
   const API = generateClient();
-
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const options = {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    };
+    return date.toLocaleString('en-US', options);
+  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Step 1: Perform validation
@@ -336,6 +390,10 @@ const ClientDetails = () => {
     //   setErrors('Please Enter Note');
     //   return;
     // }
+    if (!note) {
+      setErrors({ note: 'Note is required' });
+      return;
+    }
     try {
       // Step 2: Create the input object for staff creation or update
       const noteInput = {
@@ -354,14 +412,22 @@ const ClientDetails = () => {
       // } else {
       // Create a new staff member
       noteResponse = await API.graphql({
-        query: mutation.createThePost,
+        query: mutation.createTheNote,
         variables: { input: noteInput },
       });
       // }
       // Step 3: Handle the response and navigation
       const createdItem =
-        noteResponse.data.createThePost || noteResponse.data.updateThePost;
+        noteResponse.data.createTheNote || noteResponse.data.updateTheNote;
       console.log(createdItem.id, 'successfully created/updated');
+      if (createdItem && createdItem.id) {
+        console.log(createdItem.id, 'successfully created/updated');
+        setIsOpenPost(false); // Close the dialog only if the item is created/updated
+        listNote(id); // Refresh the list
+        setNote('')
+      } else {
+        console.error('Failed to create/update the note');
+      }
     } catch (error) {
       console.error('Error creating or updating staff:', error);
       // Handle the error (display message, etc.)
@@ -509,37 +575,42 @@ const ClientDetails = () => {
                 <div className="flex  pl-10 pr-10 bg-gray-100">
                   <div className="bg-white w-full max-w-xl">
                     <h3 className="font-medium text-black dark:text-white border-b border-stroke dark:border-gray-700 pb-2">
-                      Post's Details
+                      Add Note
                     </h3>
-                    <form onClick={handleSubmitNote} className="w-full">
-                      <div className="flex flex-col  xl:flex-row">
-                        <div className="w-full mt-4 ">
-                          <label className="block text-black dark:text-white">
-                            Note<span className="text-meta-1">*</span>
-                          </label>
-                          <input
-                            value={note}
-                            onChange={(e) => setNote(e.target.value)}
-                            type="text"
-                            name="firstName"
-                            placeholder="Enter your first name"
-                            className={`w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary ${errors.firstName ? 'border-red-500' : ''} dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary`}
-                          />
-                        </div>
+                    <div className="flex flex-col  xl:flex-row">
+                      <div className="w-full mt-4 ">
+                        <label className="block text-black dark:text-white">
+                          Note<span className="text-meta-1">*</span>
+                        </label>
+                        <input
+                          value={note}
+                          onChange={(e) => setNote(e.target.value)}
+                          type="text"
+                          name="note"
+                          placeholder="Enter your Note"
+                          className={`w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary ${errors.firstName ? 'border-red-500' : ''} dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary`}
+                        />
                       </div>
-                      {/* {errors && (
+                     
+                    </div>
+                    {errors.note && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.note}
+                        </p>
+                      )}
+                    {/* {errors && (
                         <p className="text-red-500 text-sm mt-1">
                           {errors}
                         </p>
                       )} */}
 
-                      <button
-                        className="mt-4 btn-grad w-full py-3"
-                        type="submit"
-                      >
-                        Submit
-                      </button>
-                    </form>
+                    <button
+                      onClick={handleSubmitNote}
+                      className="mt-4 btn-grad w-full py-3"
+                      type="submit"
+                    >
+                      Submit
+                    </button>
                   </div>
                 </div>
               </div>
@@ -606,12 +677,20 @@ const ClientDetails = () => {
             <h4 className="p-4 font-medium text-xl text-black dark:text-white">
               Latest Post
             </h4>
-            <button
-              onClick={() => navigation(`/addIncident/${id}/${address}`)}
-              className="h-10 mt-3 mr-3 pl-3 pr-3 bg-primary text-white rounded-full"
-            >
-              Create Incident
-            </button>
+            <div className="flex space-x-4  mr-4 justify-end items-center mt-">
+              <button
+                onClick={() => navigation(`/addIncident/${id}/${address}`)}
+                className="h-10 pl-3 pr-3 bg-primary text-white rounded-full"
+              >
+                Create Incident
+              </button>
+              <button
+                onClick={() => setIsOpenPost(true)}
+                className="h-10 pl-3 pr-3 bg-primary text-white rounded-full"
+              >
+                Add Note
+              </button>
+            </div>
             {/* <div className="flex space-x-4  mr-4 justify-end items-center mt-">
               <button
                 onClick={() => setIsOpen(true)}
@@ -642,14 +721,14 @@ const ClientDetails = () => {
                   <tbody className="w-full">
                     {postList.map((order, index) => (
                       <tr key={order.note} className="w-full">
-                        <td className="px-6 py-4 border-b border-gray-400 bg-white text-sm ">
+                        <td className="px-6 py-4 border-b border-gray-400 bg-white text-left text-sm ">
                           {index + 1} {/* Add 1 to the index to start from 1 */}
                         </td>
                         <td className="border-b border-gray-400 bg-white text-sm w-1/2 text-center">
                           {order.note}
                         </td>
                         <td className="px-6 py-4 border-b border-gray-200 bg-white text-sm w-1/2 text-right">
-                          {order.createdAt}
+                          {formatDate(order.createdAt)}
                         </td>
                       </tr>
                     ))}
@@ -669,43 +748,43 @@ const ClientDetails = () => {
         <div className="flex flex-col">
           <div className="w-full h-full">
             {/* Tab Navigation */}
-            <div className="border-b flex mt-4 pl-3">
+            <div className="border-b p-3 flex pl-3">
               <button
                 onClick={() => handleTabClick('ResList')}
-                className={`w-full px-4 py-2 uppercase text-black font-bold font-lg border-b-2 ${
+                className={`w-full px-4 py-2 uppercase text-black  p-3 font-bold border-b-2 rounded-lg shadow-sm transition duration-300 ${
                   activeTab === 'ResList'
-                    ? 'border-[#7a2828]'
-                    : 'border-transparent'
+                    ? 'bg-[#7a2828] text-white border-[#7a2828]'
+                    : 'bg-white text-black border-transparent hover:bg-gray-200'
                 }`}
               >
                 Resident List
               </button>
               <button
                 onClick={() => handleTabClick('TaskList')}
-                className={`w-full px-4 py-2  text-black font-bold font-lg border-b-2 ${
+                className={`w-full px-4 py-2 uppercase text-black  p-3 font-bold border-b-2 rounded-lg shadow-sm transition duration-300 ${
                   activeTab === 'TaskList'
-                    ? 'border-[#7a2828]'
-                    : 'border-transparent'
+                    ? 'bg-[#7a2828] text-white border-[#7a2828]'
+                    : 'bg-white text-black border-transparent hover:bg-gray-200'
                 }`}
               >
                 TASK LIST
               </button>
               <button
                 onClick={() => handleTabClick('IncidentList')}
-                className={`w-full ml-2 px-4 py-2 text-black font-bold font-lg border-b-2 ${
+                className={`w-full px-4 py-2 uppercase text-black  p-3 font-bold border-b-2 rounded-lg shadow-sm transition duration-300 ${
                   activeTab === 'IncidentList'
-                    ? 'border-[#7a2828]'
-                    : 'border-transparent'
+                    ? 'bg-[#7a2828] text-white border-[#7a2828]'
+                    : 'bg-white text-black border-transparent hover:bg-gray-200'
                 }`}
               >
-                INCIDENT LISTS
+                INCIDENT LIST
               </button>
               <button
                 onClick={() => handleTabClick('AssignedStaff')}
-                className={`w-full ml-2 px-4 py-2 text-black font-bold font-lg border-b-2 ${
+                className={`w-full px-4 py-2 uppercase text-black  p-3 font-bold border-b-2 rounded-lg shadow-sm transition duration-300 ${
                   activeTab === 'AssignedStaff'
-                    ? 'border-[#7a2828]'
-                    : 'border-transparent'
+                    ? 'bg-[#7a2828] text-white border-[#7a2828]'
+                    : 'bg-white text-black border-transparent hover:bg-gray-200'
                 }`}
               >
                 ASSIGNED STAFF
@@ -730,7 +809,7 @@ const ClientDetails = () => {
                           Address
                         </th>
                         <th className="px-6 py-3 border-gray-200 text-black text-left text-sm uppercase font-bold">
-                          CreatedAt
+                          Created Date
                         </th>
                       </tr>
                     </thead>
@@ -752,7 +831,7 @@ const ClientDetails = () => {
                             {order.address}
                           </td>
                           <td className="px-6 py-4  border-gray-200  text-sm">
-                            {order.createdAt}
+                            {formatDate(order.createdAt)}
                           </td>
                         </tr>
                       ))}
@@ -775,7 +854,7 @@ const ClientDetails = () => {
                           Description
                         </th>
                         <th className="px-6 py-3  border-gray-200 text-black text-left text-sm uppercase font-bold">
-                          CreatedAt
+                          Created Date
                         </th>
                         <th className="px-6 py-3 border-gray-200 text-black text-left text-sm uppercase font-bold">
                           Frequency
@@ -797,7 +876,7 @@ const ClientDetails = () => {
                             {order.description}
                           </td>
                           <td className="px-6 py-4  border-gray-200 text-sm">
-                            {order.updatedAt}
+                            {formatDate(order.updatedAt)}
                           </td>
                           <td className="px-6 py-4  border-gray-200 text-sm">
                             {order.frequency}
@@ -828,7 +907,7 @@ const ClientDetails = () => {
                           Address
                         </th>
                         <th className="px-6 py-3 border-gray-200 text-black text-left text-sm uppercase font-bold">
-                          CreatedAt
+                          Created Date
                         </th>
                       </tr>
                     </thead>
@@ -850,7 +929,7 @@ const ClientDetails = () => {
                             {order.address}
                           </td>
                           <td className="px-6 py-4  border-gray-200  text-sm">
-                            {order.createdAt}
+                            {formatDate(order.createdAt)}
                           </td>
                         </tr>
                       ))}
@@ -928,7 +1007,7 @@ const ClientDetails = () => {
           <h4 className="border-b  border-stroke p-4 font-medium text-xl text-black dark:text-white">
             Client's Documents
           </h4>
-          <div className="p-10 mt-4 flex flex-wrap gap-4">
+          <div className="p-2 mt-4 flex flex-wrap gap-4">
             <AttachmentPreviews filePreviews={filePreviews} />
 
             {filePreviews.map((preview, index) => (
@@ -942,6 +1021,43 @@ const ClientDetails = () => {
               />
             ))}
           </div>
+        </div>
+      </div>
+
+      <div className="mt-10 w-1/2 h-full bg-white shadow-lg rounded-sm border border-stroke dark:border-strokedark dark:bg-boxdark">
+        <div className="flex flex-col">
+          <h4 className="border-b  border-stroke p-4 font-medium text-xl text-black dark:text-white">
+            Staff's Notes
+          </h4>
+          <table className="min-w-full bg-white shadow overflow-hidden">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-6 py-3 border-gray-200 text-black text-left text-sm uppercase font-bold">
+                  Note
+                </th>
+
+                <th className="text-right px-6 py-3 border-gray-200 text-black text-left text-sm uppercase font-bold">
+                  Created Date
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {noteList.map((order, index) => (
+                <tr
+                  key={order.id}
+                  className={index % 2 === 0 ? 'bg-[#f2f2f2]' : 'bg-white'}
+                >
+                  <td className="px-6 py-4  border-gray-200  text-sm">
+                    {order.note}
+                  </td>
+
+                  <td className="px-6 py-4 text-right border-gray-200  text-sm">
+                    {formatDate(order.createdAt)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </>

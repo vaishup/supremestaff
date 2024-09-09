@@ -736,7 +736,8 @@ const ClientDetails = () => {
                 </table>
               ) : (
                 <div className="text-center py-10 text-gray-500">
-                  No data found
+                             <p className="text-center text-black font-bold w-full p-10">No data found</p>
+
                 </div>
               )}
             </div>
@@ -839,7 +840,8 @@ const ClientDetails = () => {
                   </table>
                 ) : (
                   <div className="text-center text-gray-500 py-10">
-                    No data found
+                                <p className="text-center text-black font-bold w-full p-10">No data found</p>
+
                   </div>
                 ))}
               {activeTab === 'TaskList' &&
@@ -887,7 +889,8 @@ const ClientDetails = () => {
                   </table>
                 ) : (
                   <div className="text-center text-gray-500 py-10">
-                    No data found
+                                <p className="text-center text-black font-bold w-full p-10">No data found</p>
+
                   </div>
                 ))}
 
@@ -937,7 +940,8 @@ const ClientDetails = () => {
                   </table>
                 ) : (
                   <div className="text-center text-gray-500 py-10">
-                    No data found
+                                <p className="text-center text-black font-bold w-full p-10">No data found</p>
+
                   </div>
                 ))}
 
@@ -993,7 +997,8 @@ const ClientDetails = () => {
                     </table>
                   ) : (
                     <div className="text-center py-10 text-gray-500">
-                      No data found
+                                 <p className="text-center text-black font-bold w-full p-10">No data found</p>
+
                     </div>
                   )}
                 </div>

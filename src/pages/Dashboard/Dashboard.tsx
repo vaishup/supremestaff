@@ -47,7 +47,7 @@ const Dashboard = ({}) => {
   useEffect(() => {
     fetchBatch();
     //handleLogout()
-  }, []);
+  }, [clientList]);
   const handleLogout = async () => {
     try {
       const response = await signOut();

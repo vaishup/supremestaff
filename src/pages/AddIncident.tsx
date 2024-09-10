@@ -141,13 +141,40 @@ const AddIncident = () => {
 
       console.log('incidentInput...', incidentInput);
 
-      // const incidentResponse = await API.graphql({
-      //   query: createTheIncidents,
-      //   variables: { input: incidentInput },
-      // });
+      const incidentResponse = await API.graphql({
+        query: createTheIncidents,
+        variables: { input: incidentInput },
+      });
+      console.log('incidentResponse...', incidentResponse);
 
-      // const createdItem = incidentResponse.data.createTheIncidents;
-      // const incidentid = createdItem.id;
+      const createdItem = incidentResponse.data.createTheIncidents;
+      const incidentid = createdItem.id;
+      try {
+        const uploadedFiles = await Promise.all(
+          filePreviews.map((preview) => uploadToS3s(preview.file, incidentid, preview.name))
+          );
+        console.log("uploadedFiles",uploadedFiles);
+        
+        // const uploadedFileKey = await uploadToS3(files, clientId);
+        const updateInput = {
+          id: incidentid,
+          attachments: uploadedFiles,
+        };
+        console.log('updateInput/...', updateInput);
+
+        const update = await API.graphql({
+          query: updateTheIncidents,
+          variables: { input: updateInput },
+        });
+        console.log(update, 'suceesfully created');
+
+        // Handle the success (e.g., update UI, make further API calls)
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        // Handle the error (e.g., display error message to user)
+      }
+
+     navigation(`/clientdetail/${id}`);
     } catch (error) {
       console.error('Error CREATING incident:', error);
     }
@@ -156,19 +183,20 @@ const AddIncident = () => {
   /// file  upload-------------------
   const handleFileChanges = (event) => {
     const selectedFiles = Array.from(event.target.files);
-
-    // Generate file previews and store the actual file objects
+  
     const previews = selectedFiles.map((file) => {
       const isImage = file.type.startsWith('image/');
       return {
-        file: file, // Store the original File object
-        url: isImage ? URL.createObjectURL(file) : null, // Generate preview for image files only
+        file: file, // Store the actual File object
+        url: isImage ? URL.createObjectURL(file) : null, // This is only for preview purposes
         name: file.name,
-        isImage: isImage, // Flag to check if the file is an image
+        isImage: isImage,
       };
     });
-    setFilePreviews([...filePreviews, ...previews]); // Append the new previews to existing ones
+  
+    setFilePreviews((prevPreviews) => [...prevPreviews, ...previews]); // Append new previews
   };
+  
 
   const onDrop = (acceptedFiles: File[]) => {
     setFilePreviewss([...filePreviewss, ...acceptedFiles]);
@@ -182,28 +210,31 @@ const AddIncident = () => {
   const uploadToS3s = async (file, ticketId, fileName) => {
     try {
       const fullKey = `Incidents/${ticketId}/image/${fileName}`;
-
+  
       const result = await uploadData({
         key: fullKey,
-        data: file,
+        data: file, // Ensure this is the actual File object
         options: {
           accessLevel: 'guest', // Change as necessary (guest, private, protected)
         },
       });
+  
       console.log('Uploaded file key:', fullKey); // Log the key for verification
+      console.log('result:', result); // Log the result for verification
       return fullKey; // Return the key to use it in the mutation
     } catch (error) {
       console.error('Error uploading to S3: ', error);
       throw error; // Rethrow the error for handling in the calling function
     }
   };
+  
   const handleDialogue = () => {
     setIsOpen(false);
-    navigation(`/`);
+    //navigation(`/`);
   };
   const handleCancle = () => {
     setIsOpen(false);
-    navigation('/dashboard');
+    //navigation('/dashboard');
   };
 
   const [selectedDate, setSelectedDate] = useState(dayjs());
@@ -280,7 +311,6 @@ const AddIncident = () => {
                 Incident Report
               </h3>
             </div>
-            <form action="#">
               <div className="p-6.5 ">
                 <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
                   <div className="w-full xl:w-1/2">
@@ -421,14 +451,9 @@ const AddIncident = () => {
                 {/* <button className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90">
                     Submit
                   </button> */}
-                <button
-                  className="btn-grad w-full pr-20"
-                  onClick={handleSubmit}
-                >
-                  Submit
-                </button>
+                <button  onClick={handleSubmit}className="btn-grad w-full pr-20">Submit</button>
               </div>
-            </form>
+          
           </div>
         </div>
       </div>

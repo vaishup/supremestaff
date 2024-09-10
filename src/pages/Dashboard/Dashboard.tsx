@@ -47,7 +47,7 @@ const Dashboard = ({}) => {
   useEffect(() => {
     fetchBatch();
     //handleLogout()
-  }, [clientList]);
+  }, []);
   const handleLogout = async () => {
     try {
       const response = await signOut();
@@ -58,13 +58,7 @@ const Dashboard = ({}) => {
     }
   };
 
-  const [isFriendRemoveOpen, setIsFriendRemoveOpen] = useState(false);
-  const handleRemoveClose = () => {
-    setIsFriendRemoveOpen(false);
-  };
-  const handleRemoveOpen = () => {
-    setIsFriendRemoveOpen(true);
-  };
+
   const navigation = useNavigate();
 
   const fetchBatch = async () => {
@@ -129,7 +123,9 @@ const Dashboard = ({}) => {
         const clients = clientResponses.map(
           (response) => response.data.getTheClient,
         );
-        console.log('clients:', clientResponses);
+
+        console.log('clientResponses:', clientResponses);
+        console.log('clients:', clients);
         setClientist(clients); // Assuming you want to store this in state
       }
     } catch (error) {

@@ -17,6 +17,7 @@ import {
   getCurrentUser,
   updateUserAttribute,
 } from "aws-amplify/auth";
+import { Eye, EyeOff } from "lucide-react";
 interface SignInProps {
   onLoginSuccess: () => void;
 }
@@ -131,6 +132,11 @@ const SignIn: React.FC<SignInProps> = ({ onLoginSuccess }) => {
   useEffect(() => {
     handleLogout();
   }, []);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   return (
     <>
@@ -152,14 +158,14 @@ const SignIn: React.FC<SignInProps> = ({ onLoginSuccess }) => {
               <form onSubmit={handleClickSignIn}>
                 <div className="mb-4">
                   <label className="mb-2.5 block font-medium text-black dark:text-white">
-                    Email
+                    Username
                   </label>
                   <div className="relative">
                     <input
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Enter your email"
+                      placeholder="Enter your Username"
                       className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                     />
 
@@ -188,13 +194,19 @@ const SignIn: React.FC<SignInProps> = ({ onLoginSuccess }) => {
                     Re-type Password
                   </label>
                   <div className="relative">
-                    <input
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      type="password"
-                      placeholder="6+ Characters, 1 Capital letter"
-                      className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                    />
+                  <input
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          type={showPassword ? 'text' : 'password'}  // Toggle between 'text' and 'password'
+          placeholder="Enter your Password"
+          className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+        />
+                    <div
+          onClick={togglePasswordVisibility}
+          className="absolute right-3 top-4 cursor-pointer"
+        >
+          {showPassword ? <Eye /> : <EyeOff />}
+        </div>
                   </div>
                 </div>
                 {errorMsg && (

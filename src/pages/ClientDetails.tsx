@@ -182,12 +182,12 @@ const ClientDetails = () => {
           },
         },
       });
-      const incidentData = response.data.listTheIncidents;
+      const incidentData = response.data.listTheIncidents.items;
       console.log('incidentData', incidentData);
       const sortedTasks = incidentData.sort((a, b) =>
       new Date(b.createdAt) - new Date(a.createdAt)
     );
-      setIncidentList(sortedTasks.items);
+      setIncidentList(sortedTasks);
     } catch (error) {
       console.error('Error fetching incidentData:', error);
       setLoading(false);
@@ -1012,20 +1012,27 @@ const ClientDetails = () => {
           <h4 className="border-b  border-stroke p-4 font-medium text-xl text-black dark:text-white">
             Client's Documents
           </h4>
-          <div className="p-2 mt-4 flex flex-wrap gap-4">
-            <AttachmentPreviews filePreviews={filePreviews} />
+          <div className="mt-4 flex flex-wrap gap-4">
+  {filePreviews.length === 0 ? (
+    <p className="text-center text-black font-bold w-full p-10">      No documents uploaded yet. 
+    </p>
+    ) : (
+    <>
+      <AttachmentPreviews filePreviews={filePreviews} />
 
-            {filePreviews.map((preview, index) => (
-              <img
-                key={index}
-                className="m-3"
-                width={120}
-                height={120}
-                src={preview}
-                alt={`Preview ${index}`}
-              />
-            ))}
-          </div>
+      {/* {filePreviews.map((preview, index) => (
+        <img
+          key={index}
+          className="m-3"
+          width={120}
+          height={120}
+          src={preview}
+          alt={`Preview ${index}`}
+        />
+      ))} */}
+    </>
+  )}
+</div>
         </div>
       </div>
 
@@ -1047,21 +1054,28 @@ const ClientDetails = () => {
               </tr>
             </thead>
             <tbody>
-              {noteList.map((order, index) => (
-                <tr
-                  key={order.id}
-                  className={index % 2 === 0 ? 'bg-[#f2f2f2]' : 'bg-white'}
-                >
-                  <td className="px-6 py-4  border-gray-200  text-sm">
-                    {order.note}
-                  </td>
+  {noteList.length > 0 ? (
+    noteList.map((order, index) => (
+      <tr
+        key={order.id}
+        className={index % 2 === 0 ? 'bg-[#f2f2f2]' : 'bg-white'}
+      >
+        <td className="px-6 py-4 border-gray-200 text-sm">
+          {order.note}
+        </td>
 
-                  <td className="px-6 py-4 text-right border-gray-200  text-sm">
-                    {formatDate(order.createdAt)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+        <td className="px-6 py-4 text-right border-gray-200 text-sm">
+          {formatDate(order.createdAt)}
+        </td>
+      </tr>
+    ))
+  ) : (
+    <p className="text-center text-black font-bold w-full p-10"> 
+        No data found
+      </p>
+  )}
+</tbody>
+
           </table>
         </div>
       </div>

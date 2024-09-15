@@ -14,9 +14,15 @@ import {
   listThePosts,
   listTheResidents,
   listTheNotes,
+  listTheClientPeople,
   theStaffsByTheClientID,
   theStafftheClientsByTheClientId,
 } from '../graphql/queries';
+import {
+  getTableID,
+  getUserInfo,
+  getDriverByUserId,
+} from '../hooks/authServices';
 import { useParams, useNavigate } from 'react-router-dom'; // Import hooks from react-router-dom
 import {
   FileIcon,
@@ -54,6 +60,8 @@ const ClientDetails = () => {
 
   const [filePreviews, setFilePreviews] = useState([]);
   const [IncidentList, setIncidentList] = useState([]);
+  const [staffid, setStaffId] = useState();
+  const [clientpeople, setClientPeople] = useState([]);
 
   // Get the staff ID from the URL, if it exists
   const navigation = useNavigate();
@@ -113,7 +121,47 @@ const ClientDetails = () => {
       }
     }
   `;
+  const listPeople = async (id) => {
+    try {
+      const response = await client.graphql({
+        query: listTheClientPeople,
+        variables: {
+          filter: {
+            clientID: {
+              eq: id,
+            },
+          },
+        },
+      });
+      // Access the correct property from the response
+      const clientData = response.data.listTheClientPeople;
+      console.log('clientData', clientData);
+      const sortedTasks = clientData.items.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+      );
+      console.log('sortedTasks...', sortedTasks);
+
+      // Set the client data to state
+      setClientPeople(sortedTasks);
+      setLoading(false); // Ensure you're setting the items array to state
+    } catch (error) {
+      console.error('Error fetching listPost', error);
+      setLoading(false);
+    }
+  };
+  const fetchBatch = async () => {
+    const userId = await getTableID();
+    const userDetail: any = await getDriverByUserId(`${userId}`);
+
+    setEmail(userDetail.email);
+    setStaffId(userDetail.id);
+  };
+
+  // Example usage:
+
   useEffect(() => {
+    fetchBatch();
+
     if (id) {
       const fetchclientData = async () => {
         try {
@@ -124,7 +172,6 @@ const ClientDetails = () => {
             variables: { id },
           });
           const clientData = clientesponse.data.getTheClient;
-
           if (clientData.attachments && Array.isArray(clientData.attachments)) {
             const urls = await Promise.all(
               clientData.attachments.map(async (attachment) => {
@@ -132,7 +179,6 @@ const ClientDetails = () => {
               }),
             );
             console.log('urls...', urls);
-
             setFilePreviews(urls);
           }
           setName(clientData.name);
@@ -141,7 +187,6 @@ const ClientDetails = () => {
           setContactPersonPhone(clientData.contactPersonPhone);
           setAddress(clientData.address);
           setBname(clientData.bname);
-
           if (clientData.staffids && Array.isArray(clientData.staffids)) {
             const staffMembers = await Promise.all(
               clientData.staffids.map(async (staffId) => {
@@ -149,13 +194,14 @@ const ClientDetails = () => {
                   query: getTheStaff, // Replace with your actual query to get staff data
                   variables: { id: staffId },
                 });
-                console.log("staffResponse.data.getTheStaff;...",staffResponse.data.getTheStaff);
-                
+                // console.log(
+                //   'staffResponse.data.getTheStaff;...',
+                //   staffResponse.data.getTheStaff,
+                // );
+
                 return staffResponse.data.getTheStaff;
               }),
             );
-            console.log('staffMembers', staffMembers);
-
             setStaffList(staffMembers);
           }
         } catch (error) {
@@ -168,6 +214,7 @@ const ClientDetails = () => {
       listResidents(id);
       listPost(id);
       listNote(id);
+      listPeople(id);
     }
   }, [id]);
   const listTheIncidentss = async (id) => {
@@ -183,10 +230,10 @@ const ClientDetails = () => {
         },
       });
       const incidentData = response.data.listTheIncidents.items;
-      console.log('incidentData', incidentData);
-      const sortedTasks = incidentData.sort((a, b) =>
-      new Date(b.createdAt) - new Date(a.createdAt)
-    );
+     // console.log('incidentData', incidentData);
+      const sortedTasks = incidentData.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+      );
       setIncidentList(sortedTasks);
     } catch (error) {
       console.error('Error fetching incidentData:', error);
@@ -206,15 +253,13 @@ const ClientDetails = () => {
         },
       });
 
-      console.log('listTask', id);
-
-      // Access the correct property from the response
+     // Access the correct property from the response
       const clientData = response.data.listTasks;
       console.log('clientData', clientData);
       // Set the client data to state
-      const sortedTasks = clientData.items.sort((a, b) =>
-      new Date(b.createdAt) - new Date(a.createdAt)
-    );
+      const sortedTasks = clientData.items.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+      );
       setTskist(sortedTasks);
       setLoading(false); // Ensure you're setting the items array to state
     } catch (error) {
@@ -237,9 +282,9 @@ const ClientDetails = () => {
       // Access the correct property from the response
       const clientData = response.data.listThePosts;
       console.log('clientData', clientData);
-      const sortedTasks = clientData.items.sort((a, b) =>
-      new Date(b.createdAt) - new Date(a.createdAt)
-    );
+      const sortedTasks = clientData.items.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+      );
       // Set the client data to state
       setPost(sortedTasks);
       setLoading(false); // Ensure you're setting the items array to state
@@ -261,15 +306,13 @@ const ClientDetails = () => {
         },
       });
 
-      console.log('listResidents', id);
 
       // Access the correct property from the response
       const clientData = response.data.listTheResidents;
-      console.log('listResidents', clientData);
 
-      const sortedTasks = clientData.items.sort((a, b) =>
-      new Date(b.createdAt) - new Date(a.createdAt)
-    );
+      const sortedTasks = clientData.items.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+      );
       // Set the client data to state
       setResident(sortedTasks);
       setLoading(false); // Ensure you're setting the items array to state
@@ -278,9 +321,24 @@ const ClientDetails = () => {
       setLoading(false);
     }
   };
-
+  const getTheStaffQuery = /* GraphQL */ `
+    query GetTheStaff($id: ID!) {
+      getTheStaff(id: $id) {
+        id
+        fname
+        phoneno
+        lname
+        email
+        joiningdate
+        address
+        clientIds
+        __typename
+      }
+    }
+  `;
   const listNote = async (id) => {
     try {
+      // Fetch the list of notes for the client
       const response = await client.graphql({
         query: listTheNotes,
         variables: {
@@ -291,35 +349,70 @@ const ClientDetails = () => {
           },
         },
       });
+  
       // Access the correct property from the response
-      const clientData = response.data.listTheNotes;
-      console.log('listResidents', clientData);
-      const sortedTasks = clientData.items.sort((a, b) =>
-      new Date(b.createdAt) - new Date(a.createdAt)
-    );
-      // Set the client data to state
+      const clientData = response.data.listTheNotes.items;
+      console.log("clientData.....", clientData);
+  
+      // Loop through each note and fetch staff data for each
+      const notesWithStaff = await Promise.all(
+        clientData.map(async (note) => {
+          // Fetch the staff data for each note
+          const clientDatas = await client.graphql({
+            query: getTheStaffQuery,
+            variables: { id: note.staffID },
+          });
+          console.log("clientDatas", clientDatas);
+  
+          // Check if staff data exists
+          const staffData = clientDatas.data.getTheStaff;
+          if (!staffData) {
+            console.warn(`No staff data found for staffID: ${note.staffID}`);
+            return {
+              ...note, // Keep the original note fields
+              staffFname: 'Unknown Staff', // Handle missing staff data
+            };
+          }
+  
+          const capitalize = (name) =>
+            name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+  
+          // Attach staff fname to the note
+          return {
+            ...note, // Keep the original note fields
+            staffFname: `${capitalize(staffData.fname)} ${capitalize(staffData.lname)}`, // Capitalized fname and lname
+          };
+        })
+      );
+  
+      // Sort the notes by creation date
+      const sortedTasks = notesWithStaff.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      console.log("sortedTasks...", sortedTasks);
+  
+      // Set the notes with staff fname to state
       setNoteList(sortedTasks);
       setLoading(false); // Ensure you're setting the items array to state
     } catch (error) {
-      console.error('Error fetching listResidents:', error);
+      console.error('Error fetching listTheNotes:', error);
       setLoading(false);
     }
   };
+  
+
   // Handle form submission
   const [activeTab, setActiveTab] = useState('ResList'); // State to manage active tab
-
   const handleTabClick = (tab) => {
     setActiveTab(tab);
   };
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenPost, setIsOpenPost] = useState(false);
   const [errors, setErrors] = useState({});
-
   const [add, setAdd] = useState();
   const [names, setame] = useState();
   const [phone, setPhone] = useState();
   const [note, setNote] = useState();
-
   const validate = () => {
     const errors = {};
     if (!names) errors.names = 'Name is required';
@@ -376,13 +469,11 @@ const ClientDetails = () => {
       const createdItem =
         staffResponse.data.createTheResident ||
         staffResponse.data.updateTheResident;
-      console.log(createdItem.id, 'successfully created/updated');
     } catch (error) {
       console.error('Error creating or updating staff:', error);
       // Handle the error (display message, etc.)
     }
   };
-
   const handleSubmitNote = async (e: React.FormEvent) => {
     e.preventDefault();
     // Step 1: Perform validation
@@ -399,7 +490,7 @@ const ClientDetails = () => {
       const noteInput = {
         note: note,
         clientID: id,
-
+        staffID: staffid,
         // Add other fields as needed
       };
       let noteResponse;
@@ -419,12 +510,10 @@ const ClientDetails = () => {
       // Step 3: Handle the response and navigation
       const createdItem =
         noteResponse.data.createTheNote || noteResponse.data.updateTheNote;
-      console.log(createdItem.id, 'successfully created/updated');
       if (createdItem && createdItem.id) {
-        console.log(createdItem.id, 'successfully created/updated');
         setIsOpenPost(false); // Close the dialog only if the item is created/updated
         listNote(id); // Refresh the list
-        setNote('')
+        setNote('');
       } else {
         console.error('Failed to create/update the note');
       }
@@ -433,13 +522,16 @@ const ClientDetails = () => {
       // Handle the error (display message, etc.)
     }
   };
-  function formatPhoneNumber(phoneNumberString) {
-    const cleaned = ('' + phoneNumberString).replace(/\D/g, '');
-    const match = cleaned.match(/^(\d{1})(\d{3})(\d{3})(\d{4})$/);
+  function formatPhoneNumber(phoneNumber) {
+    // Remove any non-numeric characters (if there are any)
+    const cleaned = ('' + phoneNumber).replace(/\D/g, '');
+
+    // Match and format the number
+    const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
     if (match) {
-      return `+${match[1]} (${match[2]}) ${match[3]}-${match[4]}`;
+      return `(${match[1]}) ${match[2]}-${match[3]}`;
     }
-    return phoneNumberString;
+    return null; // Return null if the number is not valid
   }
   return (
     <>
@@ -591,13 +683,10 @@ const ClientDetails = () => {
                           className={`w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary ${errors.firstName ? 'border-red-500' : ''} dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary`}
                         />
                       </div>
-                     
                     </div>
                     {errors.note && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errors.note}
-                        </p>
-                      )}
+                      <p className="text-red-500 text-sm mt-1">{errors.note}</p>
+                    )}
                     {/* {errors && (
                         <p className="text-red-500 text-sm mt-1">
                           {errors}
@@ -624,21 +713,26 @@ const ClientDetails = () => {
           </div>
 
           <div className="mt-3">
-            <p className="text-blue-800">{name}</p>
+            {/* <p className="text-blue-800">{name}</p> */}
 
             <div className="tab-container">
               <div className="tab-content">
+                <div className="info-row">
+                  <div className="flex flex-row items-center w-full">
+                    {/* <p>Mobile</p> */}
+                    <Phone />
+                    <strong className="text-black ml-2 flex-grow ">
+                      {formatPhoneNumber(mobile)}
+                    </strong>
+                  </div>
+                </div>
                 <div className="info-row">
                   {/* <div className="info-column">
                     <p>Name</p>
                     <strong>{name}</strong>
                   </div> */}
-                  <div className=" flex flex-row">
-                    {/* <p>Mobile</p> */}
-                    <Phone />
-                    <strong className="text-black  ml-2">{mobile}</strong>
-                  </div>
-                  <div className=" flex flex-row">
+
+                  <div className=" flex flex-row mt-1">
                     <Mail />
 
                     <strong className="text-black  ml-2">{email}</strong>
@@ -653,7 +747,7 @@ const ClientDetails = () => {
                   </div> */}
                   <div className=" flex flex-row ">
                     {/* <p>Address</p> */}
-                    <Home />
+                    <Home size={40} />
                     <strong className="text-black ml-2">{address}</strong>
                   </div>
 
@@ -736,8 +830,9 @@ const ClientDetails = () => {
                 </table>
               ) : (
                 <div className="text-center py-10 text-gray-500">
-                             <p className="text-center text-black font-bold w-full p-10">No data found</p>
-
+                  <p className="text-center text-black font-bold w-full p-10">
+                    No data found
+                  </p>
                 </div>
               )}
             </div>
@@ -750,6 +845,16 @@ const ClientDetails = () => {
           <div className="w-full h-full">
             {/* Tab Navigation */}
             <div className="border-b p-3 flex pl-3">
+              <button
+                onClick={() => handleTabClick('clientpList')}
+                className={`w-full px-4 py-2 uppercase text-black  p-3 font-bold border-b-2 rounded-lg shadow-sm transition duration-300 ${
+                  activeTab === 'clientpList'
+                    ? 'bg-[#7a2828] text-white border-[#7a2828]'
+                    : 'bg-white text-black border-transparent hover:bg-gray-200'
+                }`}
+              >
+                Client's People List
+              </button>
               <button
                 onClick={() => handleTabClick('ResList')}
                 className={`w-full px-4 py-2 uppercase text-black  p-3 font-bold border-b-2 rounded-lg shadow-sm transition duration-300 ${
@@ -794,6 +899,57 @@ const ClientDetails = () => {
             {/* <div className=' mt-3'></div> */}
             {/* Tab Content */}
             <div className="max-h-100 overflow-x-auto mt-2">
+              {activeTab === 'clientpList' &&
+                (clientpeople.length > 0 ? (
+                  <table className="min-w-full bg-white shadow overflow-hidden">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-6 py-3 border-gray-200 text-black text-left text-sm uppercase font-bold">
+                          Name
+                        </th>
+
+                        <th className="px-6 py-3  border-gray-200 text-black text-left text-sm uppercase font-bold">
+                          Email
+                        </th>
+                        <th className="px-6 py-3 border-gray-200 text-black text-left text-sm uppercase font-bold">
+                          Phone No
+                        </th>
+                        <th className="px-6 py-3 border-gray-200 text-black text-left text-sm uppercase font-bold">
+                          Created Date
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {clientpeople.map((order, index) => (
+                        <tr
+                          key={order.id}
+                          className={
+                            index % 2 === 0 ? 'bg-[#f2f2f2]' : 'bg-white'
+                          }
+                        >
+                          <td className="px-6 py-4  border-gray-200  text-sm">
+                            {order.name}
+                          </td>
+                          <td className="px-6 py-4 border-gray-200  text-sm">
+                            {order.phone}
+                          </td>
+                          <td className="px-6 py-4  border-gray-200  text-sm">
+                            {order.email}
+                          </td>
+                          <td className="px-6 py-4  border-gray-200  text-sm">
+                            {formatDate(order.createdAt)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="text-center text-gray-500 py-10">
+                    <p className="text-center text-black font-bold w-full p-10">
+                      No data found
+                    </p>
+                  </div>
+                ))}
               {activeTab === 'ResList' &&
                 (residentList.length > 0 ? (
                   <table className="min-w-full bg-white shadow overflow-hidden">
@@ -840,8 +996,9 @@ const ClientDetails = () => {
                   </table>
                 ) : (
                   <div className="text-center text-gray-500 py-10">
-                                <p className="text-center text-black font-bold w-full p-10">No data found</p>
-
+                    <p className="text-center text-black font-bold w-full p-10">
+                      No data found
+                    </p>
                   </div>
                 ))}
               {activeTab === 'TaskList' &&
@@ -889,8 +1046,9 @@ const ClientDetails = () => {
                   </table>
                 ) : (
                   <div className="text-center text-gray-500 py-10">
-                                <p className="text-center text-black font-bold w-full p-10">No data found</p>
-
+                    <p className="text-center text-black font-bold w-full p-10">
+                      No data found
+                    </p>
                   </div>
                 ))}
 
@@ -940,8 +1098,9 @@ const ClientDetails = () => {
                   </table>
                 ) : (
                   <div className="text-center text-gray-500 py-10">
-                                <p className="text-center text-black font-bold w-full p-10">No data found</p>
-
+                    <p className="text-center text-black font-bold w-full p-10">
+                      No data found
+                    </p>
                   </div>
                 ))}
 
@@ -997,8 +1156,9 @@ const ClientDetails = () => {
                     </table>
                   ) : (
                     <div className="text-center py-10 text-gray-500">
-                                 <p className="text-center text-black font-bold w-full p-10">No data found</p>
-
+                      <p className="text-center text-black font-bold w-full p-10">
+                        No data found
+                      </p>
                     </div>
                   )}
                 </div>
@@ -1013,14 +1173,16 @@ const ClientDetails = () => {
             Client's Documents
           </h4>
           <div className="mt-4 flex flex-wrap gap-4">
-  {filePreviews.length === 0 ? (
-    <p className="text-center text-black font-bold w-full p-10">      No documents uploaded yet. 
-    </p>
-    ) : (
-    <>
-      <AttachmentPreviews filePreviews={filePreviews} />
+            {filePreviews.length === 0 ? (
+              <p className="text-center text-black font-bold w-full p-10">
+                {' '}
+                No documents uploaded yet.
+              </p>
+            ) : (
+              <>
+                <AttachmentPreviews filePreviews={filePreviews} />
 
-      {/* {filePreviews.map((preview, index) => (
+                {/* {filePreviews.map((preview, index) => (
         <img
           key={index}
           className="m-3"
@@ -1030,9 +1192,9 @@ const ClientDetails = () => {
           alt={`Preview ${index}`}
         />
       ))} */}
-    </>
-  )}
-</div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -1047,6 +1209,9 @@ const ClientDetails = () => {
                 <th className="px-6 py-3 border-gray-200 text-black text-left text-sm uppercase font-bold">
                   Note
                 </th>
+                <th className="px-6 py-3 border-gray-200 text-black text-left text-sm uppercase font-bold">
+                  Staff Name
+                </th>
 
                 <th className="text-right px-6 py-3 border-gray-200 text-black text-left text-sm uppercase font-bold">
                   Created Date
@@ -1054,28 +1219,30 @@ const ClientDetails = () => {
               </tr>
             </thead>
             <tbody>
-  {noteList.length > 0 ? (
-    noteList.map((order, index) => (
-      <tr
-        key={order.id}
-        className={index % 2 === 0 ? 'bg-[#f2f2f2]' : 'bg-white'}
-      >
-        <td className="px-6 py-4 border-gray-200 text-sm">
-          {order.note}
-        </td>
+              {noteList.length > 0 ? (
+                noteList.map((order, index) => (
+                  <tr
+                    key={order.id}
+                    className={index % 2 === 0 ? 'bg-[#f2f2f2]' : 'bg-white'}
+                  >
+                    <td className="px-6 py-4 border-gray-200 text-sm">
+                      {order.note}
+                    </td>
 
-        <td className="px-6 py-4 text-right border-gray-200 text-sm">
-          {formatDate(order.createdAt)}
-        </td>
-      </tr>
-    ))
-  ) : (
-    <p className="text-center text-black font-bold w-full p-10"> 
-        No data found
-      </p>
-  )}
-</tbody>
-
+                    <td className="px-6 py-4 border-gray-200 text-sm">
+                      {order.staffFname}
+                    </td>
+                    <td className="px-6 py-4 text-right border-gray-200 text-sm">
+                      {formatDate(order.createdAt)}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <p className="text-center text-black font-bold w-full p-10">
+                  No data found
+                </p>
+              )}
+            </tbody>
           </table>
         </div>
       </div>

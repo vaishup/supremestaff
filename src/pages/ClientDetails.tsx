@@ -853,7 +853,7 @@ const ClientDetails = () => {
                     : 'bg-white text-black border-transparent hover:bg-gray-200'
                 }`}
               >
-                Client's People List
+             Management
               </button>
               <button
                 onClick={() => handleTabClick('ResList')}
@@ -873,7 +873,7 @@ const ClientDetails = () => {
                     : 'bg-white text-black border-transparent hover:bg-gray-200'
                 }`}
               >
-                TASK LIST
+                PROTOCOL LIST
               </button>
               <button
                 onClick={() => handleTabClick('IncidentList')}

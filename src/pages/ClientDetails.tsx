@@ -62,6 +62,7 @@ const ClientDetails = () => {
   const [IncidentList, setIncidentList] = useState([]);
   const [staffid, setStaffId] = useState();
   const [clientpeople, setClientPeople] = useState([]);
+  const [resident, setResidentType] = useState();
 
   // Get the staff ID from the URL, if it exists
   const navigation = useNavigate();
@@ -172,6 +173,9 @@ const ClientDetails = () => {
             variables: { id },
           });
           const clientData = clientesponse.data.getTheClient;
+          setResidentType(
+            clientData.residentType ? clientData.residentType : 'Resident',
+          );
           if (clientData.attachments && Array.isArray(clientData.attachments)) {
             const urls = await Promise.all(
               clientData.attachments.map(async (attachment) => {
@@ -863,7 +867,7 @@ const ClientDetails = () => {
                     : 'bg-white text-black border-transparent hover:bg-gray-200'
                 }`}
               >
-                Resident List
+                {resident} List
               </button>
               <button
                 onClick={() => handleTabClick('TaskList')}
